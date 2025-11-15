@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Cut the Feedback</title>
+  <!-- Упрощенная CSP политика -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' https://yandex.ru; style-src 'self' 'unsafe-inline'; media-src 'self' data: blob:;">
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Добавляем favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+  <!-- Yandex Games SDK -->
+  <script src="https://yandex.ru/games/sdk/v2"></script>
+</head>
+<body>
+  <!-- Аудио элементы (оставляем для fallback) -->
+  <audio id="background-music" preload="auto" loop>
+    <source src="sounds/background-music.mp3" type="audio/mpeg">
+    <source src="sounds/background-music.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="tick-sound" preload="auto">
+    <source src="sounds/tick.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="heartbeat-sound" preload="auto">
+    <source src="sounds/heartbeat.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="collect-sound" preload="auto">
+    <source src="sounds/collect.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="wrong-sound" preload="auto">
+    <source src="sounds/wrong.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="cut-sound" preload="auto">
+    <source src="sounds/cut.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="level-complete-sound" preload="auto">
+    <source src="sounds/level-complete.wav" type="audio/wav">
+  </audio>
+  
+  <audio id="game-over-sound" preload="auto">
+    <source src="sounds/game-over.wav" type="audio/wav">
+  </audio>
+
+  <!-- Анимированный фон -->
+  <div class="animated-bg">
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+    <div class="bg-particle"></div>
+  </div>
+
+  <!-- Главное меню -->
+  <div id="main-menu" class="screen">
+    <div class="menu-content">
+      <h1 class="game-title">✂️ Cut the Feedback</h1>
+      <div class="menu-buttons">
+        <button id="menu-start-btn" class="btn-primary menu-btn">🎬 <span data-i18n="start_game">Начать игру</span></button>
+        <button id="menu-highscores-btn" class="btn-gold menu-btn">🏆 <span data-i18n="highscores">Рекорды</span></button>
+        <button id="menu-rules-btn" class="btn-secondary menu-btn">📖 <span data-i18n="rules">Правила</span></button>
+        <button id="rewarded-ad-btn" class="btn-success menu-btn">🎁 <span data-i18n="rewarded_ad_text">+1 жизнь (реклама)</span></button>
+      </div>
+      <div class="game-info">
+        <p data-i18n="game_description_1">Редактируй видео как профессионал!</p>
+        <p data-i18n="game_description_2">Собирай нужные правки, режь лишние</p>
+      </div>
+      <!-- Баннер рекламы -->
+      <div id="banner-ad" class="banner-ad-container">
+        <div class="banner-placeholder" data-i18n="ad_banner">Рекламный баннер</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран правил -->
+  <div id="rules-screen" class="screen hidden">
+    <div class="rules-content">
+      <h2 data-i18n="rules_title">📖 Правила игры</h2>
+      <div class="rules-list">
+        <div class="rule-item">
+          <span class="rule-emoji">🎯</span>
+          <div class="rule-text">
+            <strong data-i18n="rule1_title">Собирай нужные правки</strong>
+            <p data-i18n="rule1_text">Тапай на зеленые правки с нужным эмодзи</p>
+          </div>
+        </div>
+        
+        <div class="rule-item">
+          <span class="rule-emoji">✂️</span>
+          <div class="rule-text">
+            <strong data-i18n="rule2_title">Режь плохие правки</strong>
+            <p data-i18n="rule2_text">Проводи пальцем по красным правкам</p>
+          </div>
+        </div>
+        
+        <div class="rule-item">
+          <span class="rule-emoji">⚠️</span>
+          <div class="rule-text">
+            <strong data-i18n="rule3_title">Избегай ошибок</strong>
+            <p data-i18n="rule3_text">Не режь нужные зеленые правки - потеряешь пазл</p>
+          </div>
+        </div>
+        
+        <div class="rule-item">
+          <span class="rule-emoji">❤️</span>
+          <div class="rule-text">
+            <strong data-i18n="rule4_title">Следи за жизнями</strong>
+            <p data-i18n="rule4_text">Пропустишь 7 плохих правок - потеряешь жизнь</p>
+          </div>
+        </div>
+        
+        <div class="rule-item">
+          <span class="rule-emoji">⏱️</span>
+          <div class="rule-text">
+            <strong data-i18n="rule5_title">Время ограничено</strong>
+            <p data-i18n="rule5_text">Собери все пазлы до окончания таймера</p>
+          </div>
+        </div>
+        
+        <div class="rule-item">
+          <span class="rule-emoji">🚀</span>
+          <div class="rule-text">
+            <strong data-i18n="rule6_title">Прокачивайся</strong>
+            <p data-i18n="rule6_text">5 уровней сложности ждут тебя!</p>
+          </div>
+        </div>
+      </div>
+      <button id="close-rules" class="btn-primary" data-i18n="understand">Понятно!</button>
+    </div>
+  </div>
+
+  <!-- Игровой интерфейс -->
+  <div id="game-interface" class="hidden">
+    <!-- Левая панель с меню и пазлом -->
+    <div class="left-panel">
+      <div class="game-ui">
+        <h1 class="title">✂️ Cut the Feedback</h1>
+        <div class="controls-row">
+          <button id="start-btn" class="btn-primary">🎬 <span data-i18n="start">Старт</span></button>
+          <button id="pause-btn" class="btn-secondary">⏸️ <span data-i18n="pause">Пауза</span></button>
+          <button id="end-btn" class="btn-danger">⏹️ <span data-i18n="to_menu">В меню</span></button>
+        </div>
+        <div class="stats-grid">
+          <div id="score" class="stat-card">🎯 <span data-i18n="score">Очки</span>: 0</div>
+          <div id="level" class="stat-card">📊 <span data-i18n="level">Ур</span>: 1/5</div>
+          <div id="timer" class="stat-card timer-pulse">⏱ 60</div>
+          <div id="lives" class="stat-card">❤️ ❤️</div>
+        </div>
+        <div id="missed-counter" class="warning-card">⚠️ <span data-i18n="missed">Пропущено</span>: 0/7</div>
+        <div id="wrong-cuts-counter" class="warning-card" style="display: none;">❌ <span data-i18n="wrong_cuts">Не те правки</span>: 0/4</div>
+        <button id="highscores-btn" class="btn-gold">🏆 <span data-i18n="highscores">Рекорды</span></button>
+        <button id="game-rewarded-ad-btn" class="btn-success" style="margin-top: 10px;">🎁 <span data-i18n="rewarded_ad_text">+1 жизнь (реклама)</span></button>
+      </div>
+
+      <div id="puzzle-container">
+        <div id="puzzle-frame">
+          <h3 data-i18n="current_project">🎭 Текущий проект</h3>
+          <div id="current-target">
+            <span data-i18n="need_to_collect">Нужно собрать:</span>
+            <span id="target-emoji" class="target-emoji">🎬</span>
+          </div>
+          <div id="puzzle-grid"></div>
+          <div id="puzzle-progress" class="progress-bar">📈 <span data-i18n="progress">Прогресс</span>: 0/5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Правая игровая зона -->
+    <div id="game-area"></div>
+  </div>
+
+  <!-- Экран проигрыша -->
+  <div id="game-over" class="screen hidden">
+    <div class="game-over-content">
+      <h2>💀 <span data-i18n="game_over">ПОТРАЧЕНО</span></h2>
+      <p>🎯 <span data-i18n="level">Уровень</span>: <span id="final-level">1</span></p>
+      <p>🏆 <span data-i18n="score">Очки</span>: <span id="final-score">0</span></p>
+      <div class="game-over-buttons">
+        <button id="restart-btn" class="btn-primary">🔄 <span data-i18n="restart">Начать заново</span></button>
+        <button id="menu-from-gameover" class="btn-secondary">🏠 <span data-i18n="to_menu">В меню</span></button>
+        <button id="gameover-rewarded-ad-btn" class="btn-success">🎁 <span data-i18n="rewarded_ad_text">+1 жизнь (реклама)</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран паузы -->
+  <div id="pause-screen" class="screen hidden">
+    <div class="pause-content">
+      <h2>⏸️ <span data-i18n="paused">ПАУЗА</span></h2>
+      <button id="resume-btn" class="btn-success">▶️ <span data-i18n="resume">Продолжить</span></button>
+      <button id="quit-btn" class="btn-danger">🏠 <span data-i18n="to_menu">Выйти в меню</span></button>
+    </div>
+  </div>
+
+  <!-- Экран перехода между уровнями -->
+  <div id="level-complete" class="screen hidden">
+    <div class="level-complete-content">
+      <h2>🎉 <span data-i18n="level_complete">Уровень</span> <span id="completed-level">1</span> <span data-i18n="completed">завершен!</span></h2>
+      <p id="level-message" data-i18n="level1_message">Отличный старт! Ты освоил базовые инструменты монтажа.</p>
+      <button id="next-level-btn" class="btn-success">🚀 <span data-i18n="next_level">Следующий уровень</span></button>
+    </div>
+  </div>
+
+  <!-- Таблица рекордов -->
+  <div id="highscores-screen" class="screen hidden">
+    <div class="highscores-content">
+      <h2>🏆 <span data-i18n="highscores_table">Таблица рекордов</span></h2>
+      <div id="highscores-list"></div>
+      <button id="close-highscores" class="btn-secondary">✖️ <span data-i18n="close">Закрыть</span></button>
+    </div>
+  </div>
+
+  <!-- Управление звуком -->
+  <div class="sound-controls">
+    <div id="sound-toggle" class="sound-btn">🔊</div>
+    <div id="music-toggle" class="sound-btn">🎵</div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
