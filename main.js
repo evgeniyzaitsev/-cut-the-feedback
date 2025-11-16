@@ -95,7 +95,6 @@ const elements = {
   timerDisplay: document.getElementById("timer"),
   livesDisplay: document.getElementById("lives"),
   missedCounterDisplay: document.getElementById("missed-counter"),
-  wrongCutsCounterDisplay: document.getElementById("wrong-cuts-counter"),
   targetEmojiDisplay: document.getElementById("target-emoji"),
   puzzleGrid: document.getElementById("puzzle-grid"),
   
@@ -143,14 +142,25 @@ function initGame() {
   updateHighscoresDisplay();
   initYandexSDK();
   
-  // Запуск фоновой музыки
-  if (gameState.musicEnabled) {
-    audioElements.backgroundMusic.volume = 0.3;
-    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
-  }
+  // Настройка бесконечного воспроизведения музыки
+  setupInfiniteMusic();
   
   preventSelectionAndContextMenu();
   setupPageVisibilityHandlers();
+}
+
+// Настройка бесконечного воспроизведения музыки
+function setupInfiniteMusic() {
+  if (gameState.musicEnabled) {
+    audioElements.backgroundMusic.volume = 0.3;
+    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    
+    // Обеспечиваем бесконечное воспроизведение
+    audioElements.backgroundMusic.addEventListener('ended', function() {
+      this.currentTime = 0;
+      this.play().catch(e => console.log('Music restart error:', e));
+    });
+  }
 }
 
 // Настройка обработчиков событий
@@ -279,7 +289,6 @@ function initializePuzzle() {
   gameState.collectedPieces = 0;
   gameState.currentTargetIndex = 0;
   gameState.wrongGreenCuts = 0;
-  updateWrongCutsCounter();
   
   const totalPieces = levelConfig[gameState.currentLevel].pieces;
   gameState.currentLevelEmojis = [];
@@ -293,6 +302,7 @@ function initializePuzzle() {
     piece.className = 'puzzle-piece';
     piece.dataset.index = i;
     piece.dataset.emoji = gameState.currentLevelEmojis[i];
+    piece.textContent = gameState.currentLevelEmojis[i];
     elements.puzzleGrid.appendChild(piece);
   }
   
@@ -342,7 +352,7 @@ function resetCombo() {
 
 function showComboEffect() {
   const comboDisplay = document.createElement('div');
-  comboDisplay.className = 'combo-display';
+  comboDisplay.className = 'combo-indicator';
   comboDisplay.textContent = `COMBO x${gameState.comboMultiplier}!`;
   document.body.appendChild(comboDisplay);
   
@@ -371,19 +381,9 @@ function updateComboDisplay() {
 }
 
 // Обновление интерфейса
-function updateWrongCutsCounter() {
-  elements.wrongCutsCounterDisplay.textContent = `❌ ${gameState.wrongGreenCuts}/${gameState.MAX_WRONG_GREEN_CUTS}`;
-  
-  if (gameState.wrongGreenCuts > 0) {
-    elements.wrongCutsCounterDisplay.classList.remove('hidden');
-  } else {
-    elements.wrongCutsCounterDisplay.classList.add('hidden');
-  }
-}
-
 function updateMissedCounter() {
   const maxMissed = levelConfig[gameState.currentLevel].maxMissed;
-  elements.missedCounterDisplay.textContent = `⚠️ ${gameState.consecutiveMissed}/${maxMissed}`;
+  elements.missedCounterDisplay.innerHTML = `⚠️ <span>${gameState.consecutiveMissed}/${maxMissed}</span>`;
   
   if (gameState.consecutiveMissed >= maxMissed) {
     loseLife();
@@ -415,7 +415,6 @@ function addPuzzlePiece() {
     pieces[gameState.collectedPieces].classList.add('collected');
     gameState.collectedPieces++;
     gameState.currentTargetIndex++;
-    updateTargetEmoji();
     
     addCombo();
     playSound(audioElements.collectSound);
@@ -423,6 +422,8 @@ function addPuzzlePiece() {
     if (gameState.collectedPieces >= levelConfig[gameState.currentLevel].pieces) {
       completeLevel();
     }
+    
+    updateTargetEmoji();
   }
 }
 
@@ -432,10 +433,11 @@ function removePuzzlePiece() {
     gameState.collectedPieces--;
     gameState.currentTargetIndex--;
     pieces[gameState.collectedPieces].classList.remove('collected');
-    updateTargetEmoji();
     
     resetCombo();
-    showWarningMessage("Ошибка! Потерян пазл");
+    showWarningMessage("Вы режете не те правки! Потерян пазл!");
+    
+    updateTargetEmoji();
   }
 }
 
@@ -488,7 +490,6 @@ function startGame() {
   
   updateScoreDisplay();
   updateMissedCounter();
-  updateWrongCutsCounter();
   updateLivesDisplay();
   resetCombo();
   
@@ -578,11 +579,11 @@ function showLevelCompleteScreen() {
 
 function getLevelMessage(level) {
   const messages = {
-    1: "Отличный старт!",
-    2: "Великолепно!",
-    3: "Потрясающе!",
-    4: "Невероятно!",
-    5: "Легенда!"
+    1: "Отличный старт! Ты освоил базовые инструменты монтажа.",
+    2: "Великолепно! Твои навыки цветокоррекции на высоте.",
+    3: "Потрясающе! Ты виртуоз VFX и анимации.",
+    4: "Невероятно! Ты достиг уровня Senior Video Editor.",
+    5: "Легенда! Ты - гуру видео продакшена!"
   };
   return messages[level] || messages[1];
 }
@@ -631,8 +632,8 @@ function endGame(isWin) {
     elements.finalLevelDisplay.textContent = gameState.currentLevel;
     elements.finalScoreDisplay.textContent = gameState.score;
   } else {
-    showNotification(`🎉 Победа! Очки: ${gameState.score}`);
-    setTimeout(returnToMenu, 2000);
+    alert(`🎉 Поздравляем! Вы прошли все уровни с результатом ${gameState.score} очков!`);
+    returnToMenu();
   }
 }
 
@@ -674,7 +675,6 @@ function resetGame() {
   updateLevelDisplay();
   updateLivesDisplay();
   updateMissedCounter();
-  updateWrongCutsCounter();
   updateComboDisplay();
   
   elements.gameArea.innerHTML = '';
@@ -785,7 +785,7 @@ function spawnFeedback() {
   }
   
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
-  const maxLeft = gameAreaRect.width - 100;
+  const maxLeft = gameAreaRect.width - 110;
   const leftPosition = Math.random() * maxLeft;
   
   fb.style.left = leftPosition + "px";
@@ -849,7 +849,7 @@ function spawnNeededFeedback() {
       });
       
       const gameAreaRect = elements.gameArea.getBoundingClientRect();
-      const maxLeft = gameAreaRect.width - 100;
+      const maxLeft = gameAreaRect.width - 110;
       const leftPosition = Math.random() * maxLeft;
       
       fb.style.left = leftPosition + "px";
@@ -912,7 +912,6 @@ function collectFeedback(fb, x, y) {
   fb.classList.add('collecting');
   
   gameState.wrongGreenCuts = 0;
-  updateWrongCutsCounter();
   
   addPuzzlePiece();
   gameState.score += 15 * gameState.comboMultiplier;
@@ -933,8 +932,8 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
   
   playSound(audioElements.cutSound);
   
-  createSmoke(cutX, cutY, cutAngle, 12);
-  createExplosion(cutX, cutY, 10);
+  createSmoke(cutX, cutY, cutAngle, 15);
+  createExplosion(cutX, cutY, 12);
   
   setTimeout(() => {
     if (fb.parentNode) {
@@ -948,7 +947,6 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
     updateMissedCounter();
     
     gameState.wrongGreenCuts = 0;
-    updateWrongCutsCounter();
     
     addCombo();
   } else if (itemType === "good") {
@@ -960,24 +958,20 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
       resetCombo();
       
       gameState.wrongGreenCuts++;
-      updateWrongCutsCounter();
       
       if (gameState.wrongGreenCuts >= gameState.MAX_WRONG_GREEN_CUTS) {
         removePuzzlePiece();
         gameState.wrongGreenCuts = 0;
-        updateWrongCutsCounter();
       }
     } else {
       gameState.score -= 2;
       resetCombo();
       
       gameState.wrongGreenCuts++;
-      updateWrongCutsCounter();
       
       if (gameState.wrongGreenCuts >= gameState.MAX_WRONG_GREEN_CUTS) {
         removePuzzlePiece();
         gameState.wrongGreenCuts = 0;
-        updateWrongCutsCounter();
       }
     }
   }
@@ -1005,7 +999,7 @@ function createTrailSphere(x, y) {
   sphere.style.left = relativeX + 'px';
   sphere.style.top = relativeY + 'px';
   
-  const size = 2 + Math.random() * 4;
+  const size = 3 + Math.random() * 5;
   sphere.style.width = size + 'px';
   sphere.style.height = size + 'px';
   
@@ -1018,7 +1012,7 @@ function createTrailSphere(x, y) {
   }, 600);
 }
 
-function createSmoke(x, y, cutAngle, count = 12) {
+function createSmoke(x, y, cutAngle, count = 15) {
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
@@ -1031,7 +1025,7 @@ function createSmoke(x, y, cutAngle, count = 12) {
     const spread = (Math.random() - 0.5) * Math.PI;
     const finalAngle = oppositeAngle + spread;
     
-    const speed = 15 + Math.random() * 25;
+    const speed = 20 + Math.random() * 30;
     const distance = speed * (0.8 + Math.random() * 0.8);
     
     const tx = Math.cos(finalAngle) * distance;
@@ -1052,7 +1046,7 @@ function createSmoke(x, y, cutAngle, count = 12) {
   }
 }
 
-function createExplosion(x, y, count = 10) {
+function createExplosion(x, y, count = 12) {
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
@@ -1062,7 +1056,7 @@ function createExplosion(x, y, count = 10) {
     particle.className = 'explosion-particle';
     
     const angle = Math.random() * Math.PI * 2;
-    const speed = 40 + Math.random() * 80;
+    const speed = 50 + Math.random() * 100;
     const distance = speed * (0.7 + Math.random() * 0.6);
     
     const tx = Math.cos(angle) * distance;
@@ -1266,18 +1260,18 @@ function closeHighscores() {
 
 // Рекорды
 function saveHighscore(score, level) {
-  const name = prompt('Поздравляем! Введите ваше имя:', 'Игрок');
+  const name = prompt('Поздравляем! Введите ваше имя для таблицы рекордов:', 'Игрок');
   if (name) {
     const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
     highscores.push({
-      name: name.substring(0, 12),
+      name: name.substring(0, 15),
       score: score,
       level: level,
       date: new Date().toLocaleDateString()
     });
     
     highscores.sort((a, b) => b.score - a.score);
-    const topHighscores = highscores.slice(0, 8);
+    const topHighscores = highscores.slice(0, 10);
     localStorage.setItem('cutFeedbackHighscores', JSON.stringify(topHighscores));
     updateHighscoresDisplay();
   }
@@ -1288,7 +1282,7 @@ function updateHighscoresDisplay() {
   elements.highscoresList.innerHTML = '';
   
   if (highscores.length === 0) {
-    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">Нет рекордов</div>';
+    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">Пока нет рекордов</div>';
     return;
   }
   
@@ -1361,7 +1355,7 @@ function showRewardedAd(onRewardedCallback) {
     });
   } catch (error) {
     console.log('Rewarded ad error:', error);
-    showNotification('Реклама недоступна');
+    showNotification('Реклама временно недоступна');
     resumeAudio();
     gameState.gamePaused = false;
   }
@@ -1371,7 +1365,7 @@ function addExtraLife() {
   if (gameState.lives < gameState.maxLives) {
     gameState.lives++;
     updateLivesDisplay();
-    showNotification('+1 жизнь! 🎁');
+    showNotification('+1 жизнь получена! 🎁');
     playSound(audioElements.collectSound);
     
     if (elements.gameOverScreen && !elements.gameOverScreen.classList.contains('hidden')) {
@@ -1379,7 +1373,7 @@ function addExtraLife() {
       startGame();
     }
   } else {
-    showNotification('Макс. жизни! ❤️');
+    showNotification('У вас максимальное количество жизней! ❤️');
   }
 }
 

@@ -65,6 +65,7 @@
         <button id="rewarded-ad-btn" class="btn-success menu-btn">🎁 +1 жизнь</button>
       </div>
       <div class="game-info">
+        <p>Редактируй видео как профессионал!</p>
         <p>Собирай нужные правки, режь лишние</p>
       </div>
     </div>
@@ -73,7 +74,7 @@
   <!-- Экран правил -->
   <div id="rules-screen" class="screen hidden">
     <div class="rules-content">
-      <h2>📖 Правила</h2>
+      <h2>📖 Правила игры</h2>
       <div class="rules-list">
         <div class="rule-item">
           <span class="rule-emoji">🎯</span>
@@ -95,7 +96,7 @@
           <span class="rule-emoji">⚠️</span>
           <div class="rule-text">
             <strong>Избегай ошибок</strong>
-            <p>Не режь нужные зеленые правки</p>
+            <p>Не режь нужные зеленые правки - потеряешь пазл</p>
           </div>
         </div>
         
@@ -122,6 +123,7 @@
         </div>
         <div class="header-center">
           <div id="current-target">
+            <span>Собрать:</span>
             <span id="target-emoji" class="target-emoji">🎬</span>
           </div>
         </div>
@@ -131,8 +133,8 @@
         </div>
       </div>
 
-      <!-- Прогресс пазла -->
-      <div class="puzzle-progress-container">
+      <!-- Пазл -->
+      <div class="puzzle-container">
         <div id="puzzle-grid" class="puzzle-grid"></div>
       </div>
     </div>
@@ -143,17 +145,12 @@
     <!-- Нижняя панель управления -->
     <div class="bottom-panel">
       <div class="controls-row">
-        <button id="start-btn" class="btn-icon" title="Старт">▶️</button>
+        <button id="start-btn" class="btn-icon" title="Старт">🎬</button>
         <button id="pause-btn" class="btn-icon" title="Пауза">⏸️</button>
         <button id="end-btn" class="btn-icon" title="Меню">⏹️</button>
-      </div>
-      <div class="game-stats">
-        <div id="missed-counter" class="warning-card">⚠️ 0/7</div>
-        <div id="wrong-cuts-counter" class="warning-card hidden">❌ 0/4</div>
-      </div>
-      <div class="additional-buttons">
-        <button id="highscores-btn" class="btn-small" title="Рекорды">🏆</button>
-        <button id="game-rewarded-ad-btn" class="btn-small" title="+1 жизнь">🎁</button>
+        <div id="missed-counter" class="missed-icon" title="Пропущено">⚠️ <span>0/7</span></div>
+        <button id="highscores-btn" class="btn-icon" title="Рекорды">🏆</button>
+        <button id="game-rewarded-ad-btn" class="btn-icon" title="+1 жизнь">🎁</button>
       </div>
     </div>
   </div>
@@ -167,8 +164,8 @@
         <p>🏆 Очки: <span id="final-score">0</span></p>
       </div>
       <div class="game-over-buttons">
-        <button id="restart-btn" class="btn-primary">🔄 Заново</button>
-        <button id="menu-from-gameover" class="btn-secondary">🏠 Меню</button>
+        <button id="restart-btn" class="btn-primary">🔄 Начать заново</button>
+        <button id="menu-from-gameover" class="btn-secondary">🏠 В меню</button>
         <button id="gameover-rewarded-ad-btn" class="btn-success">🎁 +1 жизнь</button>
       </div>
     </div>
@@ -179,23 +176,23 @@
     <div class="pause-content">
       <h2>⏸️ ПАУЗА</h2>
       <button id="resume-btn" class="btn-success">▶️ Продолжить</button>
-      <button id="quit-btn" class="btn-danger">🏠 Меню</button>
+      <button id="quit-btn" class="btn-danger">🏠 Выйти в меню</button>
     </div>
   </div>
 
   <!-- Экран перехода между уровнями -->
   <div id="level-complete" class="screen hidden">
     <div class="level-complete-content">
-      <h2>🎉 Уровень <span id="completed-level">1</span></h2>
-      <p id="level-message">Отличный старт!</p>
-      <button id="next-level-btn" class="btn-success">🚀 Далее</button>
+      <h2>🎉 Уровень <span id="completed-level">1</span> завершен!</h2>
+      <p id="level-message">Отличный старт! Ты освоил базовые инструменты монтажа.</p>
+      <button id="next-level-btn" class="btn-success">🚀 Следующий уровень</button>
     </div>
   </div>
 
   <!-- Таблица рекордов -->
   <div id="highscores-screen" class="screen hidden">
     <div class="highscores-content">
-      <h2>🏆 Рекорды</h2>
+      <h2>🏆 Таблица рекордов</h2>
       <div id="highscores-list"></div>
       <button id="close-highscores" class="btn-secondary">✖️ Закрыть</button>
     </div>
