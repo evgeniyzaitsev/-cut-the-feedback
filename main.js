@@ -313,6 +313,10 @@ let soundBuffers = new Map();
 let yandexSDK = null;
 let isYandexPlatform = false;
 
+// Оптимизация для мобильных устройств
+let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+let performanceMode = false;
+
 // ==================== WEB AUDIO API ====================
 
 async function initAudio() {
@@ -504,13 +508,22 @@ function adjustLayout() {
   // Для мобильных устройств
   if (windowWidth <= 768) {
     leftPanel.style.height = '35vh';
+    leftPanel.style.maxHeight = '35vh';
     gameArea.style.height = '65vh';
     gameArea.style.width = '100%';
+    
+    // Включаем режим производительности для мобильных устройств
+    performanceMode = true;
   } else {
     // Для десктопов
     leftPanel.style.width = '280px';
+    leftPanel.style.height = '100vh';
+    leftPanel.style.maxHeight = 'none';
     gameArea.style.width = 'calc(100% - 280px)';
     gameArea.style.height = '100vh';
+    
+    // Выключаем режим производительности для десктопов
+    performanceMode = false;
   }
   
   // Предотвращаем появление скролла
@@ -1039,7 +1052,7 @@ function explodeRemainingFeedbacks() {
   feedbacks.forEach(fb => {
     const rect = fb.getBoundingClientRect();
     
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < (performanceMode ? 4 : 8); i++) {
       const explosion = document.createElement('div');
       explosion.className = 'feedback-explosion';
       
@@ -1218,11 +1231,13 @@ function updateSwipeLine(x1, y1, x2, y2) {
 
 // Создание эффекта дыма с завихрениями
 function createSmoke(x, y, cutAngle, count = 25) {
+  const actualCount = performanceMode ? Math.floor(count * 0.6) : count;
+  
   const gameAreaRect = gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
   
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < actualCount; i++) {
     const smoke = document.createElement('div');
     
     const sizeType = Math.random();
@@ -1267,11 +1282,13 @@ function createSmoke(x, y, cutAngle, count = 25) {
 
 // Создание взрыва частиц во все стороны
 function createExplosion(x, y, count = 20) {
+  const actualCount = performanceMode ? Math.floor(count * 0.7) : count;
+  
   const gameAreaRect = gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
   
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < actualCount; i++) {
     const particle = document.createElement('div');
     
     const sizeType = Math.random();
@@ -1447,8 +1464,8 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
   
   playSound(cutSound);
   
-  createSmoke(cutX, cutY, cutAngle, 25);
-  createExplosion(cutX, cutY, 20);
+  createSmoke(cutX, cutY, cutAngle, performanceMode ? 15 : 25);
+  createExplosion(cutX, cutY, performanceMode ? 12 : 20);
   splitFeedback(fb, cutAngle, cutX, cutY);
   
   setTimeout(() => {
@@ -1616,7 +1633,7 @@ function spawnFeedback() {
   }
   
   const gameAreaRect = gameArea.getBoundingClientRect();
-  const maxLeft = gameAreaRect.width - 150;
+  const maxLeft = gameAreaRect.width - (performanceMode ? 100 : 150);
   const leftPosition = Math.random() * maxLeft;
   
   fb.style.left = leftPosition + "px";
@@ -1633,7 +1650,7 @@ function spawnFeedback() {
         const scoreText = translations[currentLanguage].score || "Очки";
         scoreDisplay.textContent = `🎯 ${scoreText}: ${score}`;
         resetCombo();
-      } else if (item.type === "bad") {
+      } else if (itemType === "bad") {
         consecutiveMissed++;
         missedBadFeedbacks++;
         updateMissedCounter();
@@ -1684,7 +1701,7 @@ function spawnNeededFeedback() {
       });
       
       const gameAreaRect = gameArea.getBoundingClientRect();
-      const maxLeft = gameAreaRect.width - 150;
+      const maxLeft = gameAreaRect.width - (performanceMode ? 100 : 150);
       const leftPosition = Math.random() * maxLeft;
       
       fb.style.left = leftPosition + "px";
@@ -2121,7 +2138,7 @@ function continueSwipe(e) {
     const lastPoint = trailPoints[trailPoints.length - 2];
     const currentPoint = trailPoints[trailPoints.length - 1];
     
-    const steps = 3;
+    const steps = performanceMode ? 2 : 3;
     for (let i = 0; i < steps; i++) {
       const t = i / steps;
       const x = lastPoint.x + (currentPoint.x - lastPoint.x) * t;
