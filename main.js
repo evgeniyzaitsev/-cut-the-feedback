@@ -98,7 +98,6 @@ const elements = {
   wrongCutsCounterDisplay: document.getElementById("wrong-cuts-counter"),
   targetEmojiDisplay: document.getElementById("target-emoji"),
   puzzleGrid: document.getElementById("puzzle-grid"),
-  puzzleProgress: document.getElementById("puzzle-progress"),
   
   // Финальные результаты
   finalLevelDisplay: document.getElementById("final-level"),
@@ -297,7 +296,6 @@ function initializePuzzle() {
     elements.puzzleGrid.appendChild(piece);
   }
   
-  updatePuzzleProgress();
   updateTargetEmoji();
   resetCombo();
 }
@@ -315,11 +313,6 @@ function updateTargetEmoji() {
       currentPiece.classList.add('current');
     }
   }
-}
-
-function updatePuzzleProgress() {
-  const totalPieces = levelConfig[gameState.currentLevel].pieces;
-  elements.puzzleProgress.textContent = `📈 Прогресс: ${gameState.collectedPieces}/${totalPieces}`;
 }
 
 // Комбо-система
@@ -379,7 +372,7 @@ function updateComboDisplay() {
 
 // Обновление интерфейса
 function updateWrongCutsCounter() {
-  elements.wrongCutsCounterDisplay.textContent = `❌ Ошибки: ${gameState.wrongGreenCuts}/${gameState.MAX_WRONG_GREEN_CUTS}`;
+  elements.wrongCutsCounterDisplay.textContent = `❌ ${gameState.wrongGreenCuts}/${gameState.MAX_WRONG_GREEN_CUTS}`;
   
   if (gameState.wrongGreenCuts > 0) {
     elements.wrongCutsCounterDisplay.classList.remove('hidden');
@@ -390,7 +383,7 @@ function updateWrongCutsCounter() {
 
 function updateMissedCounter() {
   const maxMissed = levelConfig[gameState.currentLevel].maxMissed;
-  elements.missedCounterDisplay.textContent = `⚠️ Пропущено: ${gameState.consecutiveMissed}/${maxMissed}`;
+  elements.missedCounterDisplay.textContent = `⚠️ ${gameState.consecutiveMissed}/${maxMissed}`;
   
   if (gameState.consecutiveMissed >= maxMissed) {
     loseLife();
@@ -408,11 +401,11 @@ function updateLivesDisplay() {
 }
 
 function updateScoreDisplay() {
-  elements.scoreDisplay.textContent = `🎯 Очки: ${gameState.score}`;
+  elements.scoreDisplay.textContent = `🎯 ${gameState.score}`;
 }
 
 function updateLevelDisplay() {
-  elements.levelDisplay.textContent = `📊 Ур: ${gameState.currentLevel}/5`;
+  elements.levelDisplay.textContent = `📊 ${gameState.currentLevel}/5`;
 }
 
 // Игровая логика
@@ -422,7 +415,6 @@ function addPuzzlePiece() {
     pieces[gameState.collectedPieces].classList.add('collected');
     gameState.collectedPieces++;
     gameState.currentTargetIndex++;
-    updatePuzzleProgress();
     updateTargetEmoji();
     
     addCombo();
@@ -440,11 +432,10 @@ function removePuzzlePiece() {
     gameState.collectedPieces--;
     gameState.currentTargetIndex--;
     pieces[gameState.collectedPieces].classList.remove('collected');
-    updatePuzzleProgress();
     updateTargetEmoji();
     
     resetCombo();
-    showWarningMessage("Вы режете не те правки! Потерян пазл!");
+    showWarningMessage("Ошибка! Потерян пазл");
   }
 }
 
@@ -587,11 +578,11 @@ function showLevelCompleteScreen() {
 
 function getLevelMessage(level) {
   const messages = {
-    1: "Отличный старт! Ты освоил базовые инструменты монтажа.",
-    2: "Великолепно! Твои навыки цветокоррекции на высоте.",
-    3: "Потрясающе! Ты виртуоз VFX и анимации.",
-    4: "Невероятно! Ты достиг уровня Senior Video Editor.",
-    5: "Легенда! Ты - гуру видео продакшена!"
+    1: "Отличный старт!",
+    2: "Великолепно!",
+    3: "Потрясающе!",
+    4: "Невероятно!",
+    5: "Легенда!"
   };
   return messages[level] || messages[1];
 }
@@ -640,8 +631,8 @@ function endGame(isWin) {
     elements.finalLevelDisplay.textContent = gameState.currentLevel;
     elements.finalScoreDisplay.textContent = gameState.score;
   } else {
-    alert(`🎉 Поздравляем! Вы прошли все уровни с результатом ${gameState.score} очков!`);
-    returnToMenu();
+    showNotification(`🎉 Победа! Очки: ${gameState.score}`);
+    setTimeout(returnToMenu, 2000);
   }
 }
 
@@ -794,7 +785,7 @@ function spawnFeedback() {
   }
   
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
-  const maxLeft = gameAreaRect.width - 110;
+  const maxLeft = gameAreaRect.width - 100;
   const leftPosition = Math.random() * maxLeft;
   
   fb.style.left = leftPosition + "px";
@@ -858,7 +849,7 @@ function spawnNeededFeedback() {
       });
       
       const gameAreaRect = elements.gameArea.getBoundingClientRect();
-      const maxLeft = gameAreaRect.width - 110;
+      const maxLeft = gameAreaRect.width - 100;
       const leftPosition = Math.random() * maxLeft;
       
       fb.style.left = leftPosition + "px";
@@ -942,8 +933,8 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
   
   playSound(audioElements.cutSound);
   
-  createSmoke(cutX, cutY, cutAngle, 15);
-  createExplosion(cutX, cutY, 12);
+  createSmoke(cutX, cutY, cutAngle, 12);
+  createExplosion(cutX, cutY, 10);
   
   setTimeout(() => {
     if (fb.parentNode) {
@@ -1014,7 +1005,7 @@ function createTrailSphere(x, y) {
   sphere.style.left = relativeX + 'px';
   sphere.style.top = relativeY + 'px';
   
-  const size = 3 + Math.random() * 5;
+  const size = 2 + Math.random() * 4;
   sphere.style.width = size + 'px';
   sphere.style.height = size + 'px';
   
@@ -1027,7 +1018,7 @@ function createTrailSphere(x, y) {
   }, 600);
 }
 
-function createSmoke(x, y, cutAngle, count = 15) {
+function createSmoke(x, y, cutAngle, count = 12) {
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
@@ -1040,7 +1031,7 @@ function createSmoke(x, y, cutAngle, count = 15) {
     const spread = (Math.random() - 0.5) * Math.PI;
     const finalAngle = oppositeAngle + spread;
     
-    const speed = 20 + Math.random() * 30;
+    const speed = 15 + Math.random() * 25;
     const distance = speed * (0.8 + Math.random() * 0.8);
     
     const tx = Math.cos(finalAngle) * distance;
@@ -1061,7 +1052,7 @@ function createSmoke(x, y, cutAngle, count = 15) {
   }
 }
 
-function createExplosion(x, y, count = 12) {
+function createExplosion(x, y, count = 10) {
   const gameAreaRect = elements.gameArea.getBoundingClientRect();
   const relativeX = x - gameAreaRect.left;
   const relativeY = y - gameAreaRect.top;
@@ -1071,7 +1062,7 @@ function createExplosion(x, y, count = 12) {
     particle.className = 'explosion-particle';
     
     const angle = Math.random() * Math.PI * 2;
-    const speed = 50 + Math.random() * 100;
+    const speed = 40 + Math.random() * 80;
     const distance = speed * (0.7 + Math.random() * 0.6);
     
     const tx = Math.cos(angle) * distance;
@@ -1275,18 +1266,18 @@ function closeHighscores() {
 
 // Рекорды
 function saveHighscore(score, level) {
-  const name = prompt('Поздравляем! Введите ваше имя для таблицы рекордов:', 'Игрок');
+  const name = prompt('Поздравляем! Введите ваше имя:', 'Игрок');
   if (name) {
     const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
     highscores.push({
-      name: name.substring(0, 15),
+      name: name.substring(0, 12),
       score: score,
       level: level,
       date: new Date().toLocaleDateString()
     });
     
     highscores.sort((a, b) => b.score - a.score);
-    const topHighscores = highscores.slice(0, 10);
+    const topHighscores = highscores.slice(0, 8);
     localStorage.setItem('cutFeedbackHighscores', JSON.stringify(topHighscores));
     updateHighscoresDisplay();
   }
@@ -1297,7 +1288,7 @@ function updateHighscoresDisplay() {
   elements.highscoresList.innerHTML = '';
   
   if (highscores.length === 0) {
-    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">Пока нет рекордов</div>';
+    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">Нет рекордов</div>';
     return;
   }
   
@@ -1370,7 +1361,7 @@ function showRewardedAd(onRewardedCallback) {
     });
   } catch (error) {
     console.log('Rewarded ad error:', error);
-    showNotification('Реклама временно недоступна');
+    showNotification('Реклама недоступна');
     resumeAudio();
     gameState.gamePaused = false;
   }
@@ -1380,7 +1371,7 @@ function addExtraLife() {
   if (gameState.lives < gameState.maxLives) {
     gameState.lives++;
     updateLivesDisplay();
-    showNotification('+1 жизнь получена! 🎁');
+    showNotification('+1 жизнь! 🎁');
     playSound(audioElements.collectSound);
     
     if (elements.gameOverScreen && !elements.gameOverScreen.classList.contains('hidden')) {
@@ -1388,7 +1379,7 @@ function addExtraLife() {
       startGame();
     }
   } else {
-    showNotification('У вас максимальное количество жизней! ❤️');
+    showNotification('Макс. жизни! ❤️');
   }
 }
 
