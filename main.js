@@ -1,29 +1,190 @@
 // Основные константы и настройки
 const puzzleEmojis = ['🎬', '📹', '🎞️', '⚡', '✨', '🎭', '🌟', '💫', '🎪', '🎨'];
 
-const feedbackPool = [
-  { text: "Add soft lighting", type: "good", emoji: "🎬" },
-  { text: "Add shadow under object", type: "good", emoji: "📹" },
-  { text: "Add glow to text", type: "good", emoji: "🎞️" },
-  { text: "Fix skin color", type: "good", emoji: "⚡" },
-  { text: "Remove video noise", type: "good", emoji: "✨" },
-  { text: "Add wow effect", type: "good", emoji: "🎭" },
-  { text: "Add particles", type: "good", emoji: "🌟" },
-  { text: "Improve composition", type: "good", emoji: "💫" },
-  { text: "Add depth of field", type: "good", emoji: "🎪" },
-  { text: "Adjust white balance", type: "good", emoji: "🎨" },
-  
-  { text: "Make logo bigger!", type: "bad" },
-  { text: "Redo everything in 3D!", type: "bad" },
-  { text: "Can you do it faster?", type: "bad" },
-  { text: "Do it like in example (no example)", type: "bad" },
-  { text: "Add more highlights!", type: "bad" },
-  { text: "Change entire concept", type: "bad" },
-  { text: "Redraw from scratch", type: "bad" },
-  { text: "Make it cooler!", type: "bad" },
-  { text: "Remove everything and start over", type: "bad" },
-  { text: "This is not what I wanted", type: "bad" }
-];
+// Система переводов
+const translations = {
+  ru: {
+    // Главное меню
+    start_game: "🎬 Начать игру",
+    leaderboard: "🏆 Рекорды",
+    rules: "📖 Правила",
+    watch_ad_for_life: "🎁 Посмотреть рекламу за +1 жизнь",
+    game_description_1: "Редактируй видео как профессионал!",
+    game_description_2: "Собирай нужные правки, режь лишние",
+    
+    // Правила
+    rules_title: "📖 Правила игры",
+    rule1_title: "Собирай нужные правки",
+    rule1_description: "Тапай на зеленые правки с нужным эмодзи",
+    rule2_title: "Режь плохие правки",
+    rule2_description: "Проводи пальцем по красным правкам",
+    rule3_title: "Избегай ошибок",
+    rule3_description: "Не режь нужные зеленые правки - потеряешь пазл",
+    rule4_title: "Следи за жизнями",
+    rule4_description: "Пропустишь 7 плохих правок - потеряешь жизнь",
+    got_it: "Понятно!",
+    
+    // Игровой интерфейс
+    collect: "Собрать:",
+    start: "🎬",
+    pause: "⏸️",
+    menu: "⏹️",
+    watch_ad: "🎁",
+    
+    // Меню паузы
+    paused: "⏸️ ПАУЗА",
+    continue: "▶️ Продолжить",
+    quit_to_menu: "🏠 Выйти в меню",
+    
+    // Конец игры
+    game_over: "💀 КОНЕЦ ИГРЫ",
+    level: "🎯 Уровень:",
+    score: "🏆 Очки:",
+    restart: "🔄 Начать заново",
+    main_menu: "🏠 Главное меню",
+    
+    // Завершение уровня
+    level_complete: "🎉 Уровень {level} завершен!",
+    next_level: "🚀 Следующий уровень",
+    
+    // Сообщения уровней
+    level1_message: "Отличный старт! Ты освоил базовые инструменты монтажа.",
+    level2_message: "Великолепно! Твои навыки цветокоррекции на высоте.",
+    level3_message: "Потрясающе! Ты виртуоз VFX и анимации.",
+    level4_message: "Невероятно! Ты достиг уровня Senior Video Editor.",
+    level5_message: "Легенда! Ты - гуру видео продакшена!",
+    
+    // Таблица рекордов
+    close: "✖️ Закрыть",
+    
+    // Уведомления
+    extra_life_received: "+1 жизнь получена! 🎁",
+    max_lives: "У вас максимальное количество жизней! ❤️",
+    continue_playing: "+1 жизнь получена! Продолжайте играть! 🎁",
+    ad_error: "Ошибка загрузки рекламы",
+    ad_unavailable: "Реклама временно недоступна",
+    
+    // Системные сообщения
+    wrong_edits_warning: "Вы режете не те правки! Потерян пазл!",
+    congratulations: "Поздравляем! Введите ваше имя для таблицы рекордов:",
+    default_player_name: "Игрок"
+  },
+  en: {
+    // Main menu
+    start_game: "🎬 Start Game",
+    leaderboard: "🏆 Leaderboard",
+    rules: "📖 Rules",
+    watch_ad_for_life: "🎁 Watch ad for +1 life",
+    game_description_1: "Edit videos like a pro!",
+    game_description_2: "Collect needed edits, cut unnecessary ones",
+    
+    // Rules
+    rules_title: "📖 Game Rules",
+    rule1_title: "Collect needed edits",
+    rule1_description: "Tap on green edits with the right emoji",
+    rule2_title: "Cut bad edits",
+    rule2_description: "Swipe through red edits",
+    rule3_title: "Avoid mistakes",
+    rule3_description: "Don't cut needed green edits - you'll lose a puzzle piece",
+    rule4_title: "Watch your lives",
+    rule4_description: "Miss 7 bad edits - lose a life",
+    got_it: "Got it!",
+    
+    // Game interface
+    collect: "Collect:",
+    start: "🎬",
+    pause: "⏸️",
+    menu: "⏹️",
+    watch_ad: "🎁",
+    
+    // Pause menu
+    paused: "⏸️ PAUSED",
+    continue: "▶️ Continue",
+    quit_to_menu: "🏠 Quit to Menu",
+    
+    // Game over
+    game_over: "💀 GAME OVER",
+    level: "🎯 Level:",
+    score: "🏆 Score:",
+    restart: "🔄 Restart",
+    main_menu: "🏠 Main Menu",
+    
+    // Level complete
+    level_complete: "🎉 Level {level} Complete!",
+    next_level: "🚀 Next Level",
+    
+    // Level messages
+    level1_message: "Great start! You've mastered basic editing tools.",
+    level2_message: "Excellent! Your color correction skills are top notch.",
+    level3_message: "Amazing! You're a VFX and animation virtuoso.",
+    level4_message: "Incredible! You've reached Senior Video Editor level.",
+    level5_message: "Legendary! You're a video production guru!",
+    
+    // Leaderboard
+    close: "✖️ Close",
+    
+    // Notifications
+    extra_life_received: "+1 life received! 🎁",
+    max_lives: "You have maximum lives! ❤️",
+    continue_playing: "+1 life received! Continue playing! 🎁",
+    ad_error: "Error loading ad",
+    ad_unavailable: "Ad temporarily unavailable",
+    
+    // System messages
+    wrong_edits_warning: "You're cutting wrong edits! Lost a puzzle piece!",
+    congratulations: "Congratulations! Enter your name for the leaderboard:",
+    default_player_name: "Player"
+  }
+};
+
+const feedbackPool = {
+  ru: [
+    { text: "Добавь мягкое освещение", type: "good", emoji: "🎬" },
+    { text: "Сделай тень под объект", type: "good", emoji: "📹" },
+    { text: "Добавь glow на текст", type: "good", emoji: "🎞️" },
+    { text: "Исправь цвет кожи", type: "good", emoji: "⚡" },
+    { text: "Убери шум на видео", type: "good", emoji: "✨" },
+    { text: "Сделай вау-эффект", type: "good", emoji: "🎭" },
+    { text: "Добавь частицы", type: "good", emoji: "🌟" },
+    { text: "Улучши композицию", type: "good", emoji: "💫" },
+    { text: "Добавь глубину резкости", type: "good", emoji: "🎪" },
+    { text: "Скорректируй баланс белого", type: "good", emoji: "🎨" },
+    
+    { text: "Сделай логотип побольше!", type: "bad" },
+    { text: "Переделай всё в 3D!", type: "bad" },
+    { text: "Можно быстрее?", type: "bad" },
+    { text: "Сделай как в примере (нет примера)", type: "bad" },
+    { text: "Добавь больше бликов!", type: "bad" },
+    { text: "Измени всю концепцию", type: "bad" },
+    { text: "Перерисуй с нуля", type: "bad" },
+    { text: "Сделай покруче!", type: "bad" },
+    { text: "Убери всё и начни заново", type: "bad" },
+    { text: "Это не то, что я хотел", type: "bad" }
+  ],
+  en: [
+    { text: "Add soft lighting", type: "good", emoji: "🎬" },
+    { text: "Add shadow under object", type: "good", emoji: "📹" },
+    { text: "Add glow to text", type: "good", emoji: "🎞️" },
+    { text: "Fix skin color", type: "good", emoji: "⚡" },
+    { text: "Remove video noise", type: "good", emoji: "✨" },
+    { text: "Add wow effect", type: "good", emoji: "🎭" },
+    { text: "Add particles", type: "good", emoji: "🌟" },
+    { text: "Improve composition", type: "good", emoji: "💫" },
+    { text: "Add depth of field", type: "good", emoji: "🎪" },
+    { text: "Adjust white balance", type: "good", emoji: "🎨" },
+    
+    { text: "Make logo bigger!", type: "bad" },
+    { text: "Redo everything in 3D!", type: "bad" },
+    { text: "Can you do it faster?", type: "bad" },
+    { text: "Do it like in example (no example)", type: "bad" },
+    { text: "Add more highlights!", type: "bad" },
+    { text: "Change entire concept", type: "bad" },
+    { text: "Redraw from scratch", type: "bad" },
+    { text: "Make it cooler!", type: "bad" },
+    { text: "Remove everything and start over", type: "bad" },
+    { text: "This is not what I wanted", type: "bad" }
+  ]
+};
 
 const levelConfig = {
   1: { pieces: 5, speed: 800, time: 60, gridColumns: 5, maxMissed: 7 },
@@ -54,7 +215,8 @@ let gameState = {
   soundEnabled: true,
   musicEnabled: true,
   heartbeatPlaying: false,
-  savedGameState: null // Для восстановления после рекламы
+  savedGameState: null,
+  language: 'ru'
 };
 
 // DOM элементы
@@ -72,6 +234,7 @@ const elements = {
   menuHighscoresBtn: document.getElementById("menu-highscores-btn"),
   menuRulesBtn: document.getElementById("menu-rules-btn"),
   closeRulesBtn: document.getElementById("close-rules"),
+  languageBtn: document.getElementById("language-btn"),
   
   // Кнопки игры
   startBtn: document.getElementById("start-btn"),
@@ -133,7 +296,6 @@ let timeLeft;
 // Yandex SDK
 let yandexSDK = null;
 let isYandexPlatform = false;
-let currentLanguage = 'en';
 
 // Инициализация игры
 function initGame() {
@@ -144,34 +306,51 @@ function initGame() {
   updateHighscoresDisplay();
   initYandexSDK();
   
+  // Загрузка языка из localStorage
+  const savedLanguage = localStorage.getItem('gameLanguage');
+  if (savedLanguage) {
+    gameState.language = savedLanguage;
+  }
+  
+  applyLanguage();
+  
   // Настройка бесконечного воспроизведения музыки
   setupInfiniteMusic();
   
   preventSelectionAndContextMenu();
   setupPageVisibilityHandlers();
-  
-  // Инициализация перевода
-  initLanguage();
-}
-
-// Инициализация языка
-function initLanguage() {
-  if (isYandexPlatform && yandexSDK) {
-    try {
-      currentLanguage = yandexSDK.environment.i18n.lang || 'en';
-    } catch (e) {
-      console.log('Language detection error:', e);
-      currentLanguage = 'en';
-    }
-  }
-  applyLanguage();
 }
 
 // Применение языка
 function applyLanguage() {
-  // В этой версии используем английский по умолчанию
-  // В реальной игре нужно добавить систему перевода
-  console.log('Current language:', currentLanguage);
+  // Обновляем текст кнопки переключения языка
+  elements.languageBtn.textContent = gameState.language === 'ru' ? '🌐 Русский / English' : '🌐 English / Русский';
+  
+  // Применяем перевод ко всем элементам с data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    if (translations[gameState.language][key]) {
+      let text = translations[gameState.language][key];
+      if (key === 'level_complete' && elements.completedLevelDisplay) {
+        text = text.replace('{level}', elements.completedLevelDisplay.textContent);
+      }
+      element.textContent = text;
+    }
+  });
+  
+  // Сохраняем язык в localStorage
+  localStorage.setItem('gameLanguage', gameState.language);
+}
+
+// Переключение языка
+function toggleLanguage() {
+  gameState.language = gameState.language === 'ru' ? 'en' : 'ru';
+  applyLanguage();
+}
+
+// Получение перевода по ключу
+function getTranslation(key) {
+  return translations[gameState.language][key] || key;
 }
 
 // Настройка бесконечного воспроизведения музыки
@@ -179,7 +358,6 @@ function setupInfiniteMusic() {
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.3;
     
-    // Обеспечиваем бесконечное воспроизведение
     audioElements.backgroundMusic.addEventListener('ended', function() {
       this.currentTime = 0;
       this.play().catch(e => console.log('Music restart error:', e));
@@ -196,6 +374,7 @@ function setupEventListeners() {
   elements.menuHighscoresBtn.addEventListener("click", showHighscores);
   elements.menuRulesBtn.addEventListener("click", showRules);
   elements.closeRulesBtn.addEventListener("click", closeRules);
+  elements.languageBtn.addEventListener("click", toggleLanguage);
   
   // Игра
   elements.startBtn.addEventListener("click", startGame);
@@ -265,7 +444,6 @@ function handleMouseUp(e) {
 
 // Инициализация звуков
 function initSounds() {
-  // Устанавливаем минимальные настройки громкости
   Object.values(audioElements).forEach(audio => {
     audio.volume = 0.5;
     audio.preload = 'auto';
@@ -483,7 +661,7 @@ function removePuzzlePiece() {
     pieces[gameState.collectedPieces].classList.remove('collected');
     
     resetCombo();
-    showWarningMessage("You're cutting wrong edits! Lost a puzzle piece!");
+    showWarningMessage(getTranslation('wrong_edits_warning'));
     
     updateTargetEmoji();
   }
@@ -627,11 +805,11 @@ function showLevelCompleteScreen() {
 
 function getLevelMessage(level) {
   const messages = {
-    1: "Great start! You've mastered basic editing tools.",
-    2: "Excellent! Your color correction skills are top notch.",
-    3: "Amazing! You're a VFX and animation virtuoso.",
-    4: "Incredible! You've reached Senior Video Editor level.",
-    5: "Legendary! You're a video production guru!"
+    1: getTranslation('level1_message'),
+    2: getTranslation('level2_message'),
+    3: getTranslation('level3_message'),
+    4: getTranslation('level4_message'),
+    5: getTranslation('level5_message')
   };
   return messages[level] || messages[1];
 }
@@ -680,7 +858,10 @@ function endGame(isWin) {
     elements.finalLevelDisplay.textContent = gameState.currentLevel;
     elements.finalScoreDisplay.textContent = gameState.score;
   } else {
-    alert(`🎉 Congratulations! You completed all levels with ${gameState.score} points!`);
+    const winMessage = gameState.language === 'ru' 
+      ? `🎉 Поздравляем! Вы прошли все уровни с результатом ${gameState.score} очков!`
+      : `🎉 Congratulations! You completed all levels with ${gameState.score} points!`;
+    alert(winMessage);
     returnToMenu();
   }
 }
@@ -792,12 +973,13 @@ function spawnFeedback() {
   
   let item;
   const randomValue = Math.random();
+  const currentFeedbackPool = feedbackPool[gameState.language];
   
   if (randomValue < 0.6) {
-    const goodFeedbacks = feedbackPool.filter(fb => fb.type === "good");
+    const goodFeedbacks = currentFeedbackPool.filter(fb => fb.type === "good");
     item = goodFeedbacks[Math.floor(Math.random() * goodFeedbacks.length)];
   } else {
-    const badFeedbacks = feedbackPool.filter(fb => fb.type === "bad");
+    const badFeedbacks = currentFeedbackPool.filter(fb => fb.type === "bad");
     item = badFeedbacks[Math.floor(Math.random() * badFeedbacks.length)];
   }
   
@@ -864,6 +1046,7 @@ function spawnNeededFeedback() {
   if (!gameState.gameRunning || gameState.gamePaused) return;
   
   const count = Math.random() < 0.5 ? 1 : 2;
+  const currentFeedbackPool = feedbackPool[gameState.language];
   
   for (let i = 0; i < count; i++) {
     setTimeout(() => {
@@ -872,7 +1055,7 @@ function spawnNeededFeedback() {
       const fb = document.createElement("div");
       const targetEmoji = gameState.currentLevelEmojis[gameState.currentTargetIndex];
       
-      const neededFeedback = feedbackPool.find(f => 
+      const neededFeedback = currentFeedbackPool.find(f => 
         f.type === "good" && f.emoji === targetEmoji
       );
       
@@ -1308,7 +1491,10 @@ function closeHighscores() {
 
 // Рекорды
 function saveHighscore(score, level) {
-  const name = prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
+  const promptText = getTranslation('congratulations');
+  const defaultName = getTranslation('default_player_name');
+  const name = prompt(promptText, defaultName);
+  
   if (name) {
     const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
     highscores.push({
@@ -1330,7 +1516,8 @@ function updateHighscoresDisplay() {
   elements.highscoresList.innerHTML = '';
   
   if (highscores.length === 0) {
-    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">No records yet</div>';
+    const noRecordsText = gameState.language === 'ru' ? 'Пока нет рекордов' : 'No records yet';
+    elements.highscoresList.innerHTML = `<div class="highscore-item" style="justify-content: center;">${noRecordsText}</div>`;
     return;
   }
   
@@ -1360,8 +1547,18 @@ function initYandexSDK() {
       // Game Ready API
       ysdk.gameReady();
       
-      // Автоопределение языка
-      initLanguage();
+      // Автоопределение языка из SDK
+      try {
+        const sdkLanguage = ysdk.environment.i18n.lang;
+        if (sdkLanguage && (sdkLanguage === 'ru' || sdkLanguage.startsWith('ru'))) {
+          gameState.language = 'ru';
+        } else {
+          gameState.language = 'en';
+        }
+        applyLanguage();
+      } catch (e) {
+        console.log('Language detection from SDK failed, using saved language');
+      }
       
     }).catch(error => {
       console.log('Yandex SDK init error:', error);
@@ -1410,7 +1607,7 @@ function showRewardedAd(onRewardedCallback) {
           console.log('Rewarded ad error:', error);
           resumeAllAudio();
           gameState.gamePaused = false;
-          showNotification('Error loading ad');
+          showNotification(getTranslation('ad_error'));
         },
         onRewarded: () => {
           console.log('Rewarded ad completed');
@@ -1420,7 +1617,7 @@ function showRewardedAd(onRewardedCallback) {
     });
   } catch (error) {
     console.log('Rewarded ad error:', error);
-    showNotification('Ad temporarily unavailable');
+    showNotification(getTranslation('ad_unavailable'));
     resumeAllAudio();
     gameState.gamePaused = false;
   }
@@ -1430,10 +1627,10 @@ function addExtraLife() {
   if (gameState.lives < gameState.maxLives) {
     gameState.lives++;
     updateLivesDisplay();
-    showNotification('+1 life received! 🎁');
+    showNotification(getTranslation('extra_life_received'));
     playSound(audioElements.collectSound);
   } else {
-    showNotification('You have maximum lives! ❤️');
+    showNotification(getTranslation('max_lives'));
   }
 }
 
@@ -1463,7 +1660,7 @@ function continueAfterGameOver() {
       resumeGame();
     }
     
-    showNotification('+1 life received! Continue playing! 🎁');
+    showNotification(getTranslation('continue_playing'));
     playSound(audioElements.collectSound);
   }
 }
