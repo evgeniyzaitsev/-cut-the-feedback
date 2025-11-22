@@ -2,27 +2,27 @@
 const puzzleEmojis = ['🎬', '📹', '🎞️', '⚡', '✨', '🎭', '🌟', '💫', '🎪', '🎨'];
 
 const feedbackPool = [
-  { text: "Добавь мягкое освещение", type: "good", emoji: "🎬" },
-  { text: "Сделай тень под объект", type: "good", emoji: "📹" },
-  { text: "Добавь glow на текст", type: "good", emoji: "🎞️" },
-  { text: "Исправь цвет кожи", type: "good", emoji: "⚡" },
-  { text: "Убери шум на видео", type: "good", emoji: "✨" },
-  { text: "Сделай вау-эффект", type: "good", emoji: "🎭" },
-  { text: "Добавь частицы", type: "good", emoji: "🌟" },
-  { text: "Улучши композицию", type: "good", emoji: "💫" },
-  { text: "Добавь глубину резкости", type: "good", emoji: "🎪" },
-  { text: "Скорректируй баланс белого", type: "good", emoji: "🎨" },
+  { text: "Add soft lighting", type: "good", emoji: "🎬" },
+  { text: "Add shadow under object", type: "good", emoji: "📹" },
+  { text: "Add glow to text", type: "good", emoji: "🎞️" },
+  { text: "Fix skin color", type: "good", emoji: "⚡" },
+  { text: "Remove video noise", type: "good", emoji: "✨" },
+  { text: "Add wow effect", type: "good", emoji: "🎭" },
+  { text: "Add particles", type: "good", emoji: "🌟" },
+  { text: "Improve composition", type: "good", emoji: "💫" },
+  { text: "Add depth of field", type: "good", emoji: "🎪" },
+  { text: "Adjust white balance", type: "good", emoji: "🎨" },
   
-  { text: "Сделай логотип побольше!", type: "bad" },
-  { text: "Переделай всё в 3D!", type: "bad" },
-  { text: "Можно быстрее?", type: "bad" },
-  { text: "Сделай как в примере (нет примера)", type: "bad" },
-  { text: "Добавь больше бликов!", type: "bad" },
-  { text: "Измени всю концепцию", type: "bad" },
-  { text: "Перерисуй с нуля", type: "bad" },
-  { text: "Сделай покруче!", type: "bad" },
-  { text: "Убери всё и начни заново", type: "bad" },
-  { text: "Это не то, что я хотел", type: "bad" }
+  { text: "Make logo bigger!", type: "bad" },
+  { text: "Redo everything in 3D!", type: "bad" },
+  { text: "Can you do it faster?", type: "bad" },
+  { text: "Do it like in example (no example)", type: "bad" },
+  { text: "Add more highlights!", type: "bad" },
+  { text: "Change entire concept", type: "bad" },
+  { text: "Redraw from scratch", type: "bad" },
+  { text: "Make it cooler!", type: "bad" },
+  { text: "Remove everything and start over", type: "bad" },
+  { text: "This is not what I wanted", type: "bad" }
 ];
 
 const levelConfig = {
@@ -53,7 +53,8 @@ let gameState = {
   comboTimeout: null,
   soundEnabled: true,
   musicEnabled: true,
-  heartbeatPlaying: false
+  heartbeatPlaying: false,
+  savedGameState: null // Для восстановления после рекламы
 };
 
 // DOM элементы
@@ -132,6 +133,7 @@ let timeLeft;
 // Yandex SDK
 let yandexSDK = null;
 let isYandexPlatform = false;
+let currentLanguage = 'en';
 
 // Инициализация игры
 function initGame() {
@@ -147,19 +149,43 @@ function initGame() {
   
   preventSelectionAndContextMenu();
   setupPageVisibilityHandlers();
+  
+  // Инициализация перевода
+  initLanguage();
+}
+
+// Инициализация языка
+function initLanguage() {
+  if (isYandexPlatform && yandexSDK) {
+    try {
+      currentLanguage = yandexSDK.environment.i18n.lang || 'en';
+    } catch (e) {
+      console.log('Language detection error:', e);
+      currentLanguage = 'en';
+    }
+  }
+  applyLanguage();
+}
+
+// Применение языка
+function applyLanguage() {
+  // В этой версии используем английский по умолчанию
+  // В реальной игре нужно добавить систему перевода
+  console.log('Current language:', currentLanguage);
 }
 
 // Настройка бесконечного воспроизведения музыки
 function setupInfiniteMusic() {
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.3;
-    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
     
     // Обеспечиваем бесконечное воспроизведение
     audioElements.backgroundMusic.addEventListener('ended', function() {
       this.currentTime = 0;
       this.play().catch(e => console.log('Music restart error:', e));
     });
+    
+    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
   }
 }
 
@@ -186,43 +212,64 @@ function setupEventListeners() {
   // Реклама
   elements.rewardedAdBtn.addEventListener('click', () => showRewardedAd(addExtraLife));
   elements.gameRewardedAdBtn.addEventListener('click', () => showRewardedAd(addExtraLife));
-  elements.gameoverRewardedAdBtn.addEventListener('click', () => showRewardedAd(addExtraLife));
+  elements.gameoverRewardedAdBtn.addEventListener('click', () => showRewardedAd(continueAfterGameOver));
   
   // Свайп-контролы
   setupSwipeControls();
 }
 
 function setupSwipeControls() {
-  elements.gameArea.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    startSwipe({ clientX: touch.clientX, clientY: touch.clientY });
-  });
+  elements.gameArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+  elements.gameArea.addEventListener('touchmove', handleTouchMove, { passive: false });
+  elements.gameArea.addEventListener('touchend', handleTouchEnd);
   
-  elements.gameArea.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    continueSwipe({ clientX: touch.clientX, clientY: touch.clientY });
-  });
-  
-  elements.gameArea.addEventListener('touchend', endSwipe);
-  
-  elements.gameArea.addEventListener('mousedown', startSwipe);
-  elements.gameArea.addEventListener('mousemove', continueSwipe);
-  elements.gameArea.addEventListener('mouseup', endSwipe);
-  elements.gameArea.addEventListener('mouseleave', endSwipe);
+  elements.gameArea.addEventListener('mousedown', handleMouseDown);
+  elements.gameArea.addEventListener('mousemove', handleMouseMove);
+  elements.gameArea.addEventListener('mouseup', handleMouseUp);
+  elements.gameArea.addEventListener('mouseleave', handleMouseUp);
+}
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  startSwipe({ clientX: touch.clientX, clientY: touch.clientY });
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  continueSwipe({ clientX: touch.clientX, clientY: touch.clientY });
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  endSwipe();
+}
+
+function handleMouseDown(e) {
+  e.preventDefault();
+  startSwipe({ clientX: e.clientX, clientY: e.clientY });
+}
+
+function handleMouseMove(e) {
+  e.preventDefault();
+  if (isSwiping) {
+    continueSwipe({ clientX: e.clientX, clientY: e.clientY });
+  }
+}
+
+function handleMouseUp(e) {
+  e.preventDefault();
+  endSwipe();
 }
 
 // Инициализация звуков
 function initSounds() {
-  audioElements.backgroundMusic.volume = 0.3;
-  audioElements.tickSound.volume = 0.3;
-  audioElements.heartbeatSound.volume = 0.4;
-  audioElements.collectSound.volume = 0.6;
-  audioElements.wrongSound.volume = 0.5;
-  audioElements.cutSound.volume = 0.4;
-  audioElements.levelCompleteSound.volume = 0.7;
-  audioElements.gameOverSound.volume = 0.6;
+  // Устанавливаем минимальные настройки громкости
+  Object.values(audioElements).forEach(audio => {
+    audio.volume = 0.5;
+    audio.preload = 'auto';
+  });
   
   audioElements.heartbeatSound.loop = true;
   audioElements.backgroundMusic.loop = true;
@@ -230,7 +277,7 @@ function initSounds() {
 
 // Управление звуком
 function playSound(soundElement) {
-  if (!gameState.soundEnabled) return;
+  if (!gameState.soundEnabled || !soundElement) return;
   
   try {
     soundElement.currentTime = 0;
@@ -244,6 +291,7 @@ function playSound(soundElement) {
 }
 
 function stopSound(soundElement) {
+  if (!soundElement) return;
   soundElement.pause();
   soundElement.currentTime = 0;
 }
@@ -435,7 +483,7 @@ function removePuzzlePiece() {
     pieces[gameState.collectedPieces].classList.remove('collected');
     
     resetCombo();
-    showWarningMessage("Вы режете не те правки! Потерян пазл!");
+    showWarningMessage("You're cutting wrong edits! Lost a puzzle piece!");
     
     updateTargetEmoji();
   }
@@ -579,11 +627,11 @@ function showLevelCompleteScreen() {
 
 function getLevelMessage(level) {
   const messages = {
-    1: "Отличный старт! Ты освоил базовые инструменты монтажа.",
-    2: "Великолепно! Твои навыки цветокоррекции на высоте.",
-    3: "Потрясающе! Ты виртуоз VFX и анимации.",
-    4: "Невероятно! Ты достиг уровня Senior Video Editor.",
-    5: "Легенда! Ты - гуру видео продакшена!"
+    1: "Great start! You've mastered basic editing tools.",
+    2: "Excellent! Your color correction skills are top notch.",
+    3: "Amazing! You're a VFX and animation virtuoso.",
+    4: "Incredible! You've reached Senior Video Editor level.",
+    5: "Legendary! You're a video production guru!"
   };
   return messages[level] || messages[1];
 }
@@ -632,7 +680,7 @@ function endGame(isWin) {
     elements.finalLevelDisplay.textContent = gameState.currentLevel;
     elements.finalScoreDisplay.textContent = gameState.score;
   } else {
-    alert(`🎉 Поздравляем! Вы прошли все уровни с результатом ${gameState.score} очков!`);
+    alert(`🎉 Congratulations! You completed all levels with ${gameState.score} points!`);
     returnToMenu();
   }
 }
@@ -1260,7 +1308,7 @@ function closeHighscores() {
 
 // Рекорды
 function saveHighscore(score, level) {
-  const name = prompt('Поздравляем! Введите ваше имя для таблицы рекордов:', 'Игрок');
+  const name = prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
   if (name) {
     const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
     highscores.push({
@@ -1282,7 +1330,7 @@ function updateHighscoresDisplay() {
   elements.highscoresList.innerHTML = '';
   
   if (highscores.length === 0) {
-    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">Пока нет рекордов</div>';
+    elements.highscoresList.innerHTML = '<div class="highscore-item" style="justify-content: center;">No records yet</div>';
     return;
   }
   
@@ -1308,7 +1356,13 @@ function initYandexSDK() {
       yandexSDK = ysdk;
       isYandexPlatform = true;
       console.log('Yandex SDK initialized');
+      
+      // Game Ready API
       ysdk.gameReady();
+      
+      // Автоопределение языка
+      initLanguage();
+      
     }).catch(error => {
       console.log('Yandex SDK init error:', error);
       isYandexPlatform = false;
@@ -1321,31 +1375,42 @@ function initYandexSDK() {
 
 function showRewardedAd(onRewardedCallback) {
   if (!isYandexPlatform) {
+    // Для тестирования без SDK
     onRewardedCallback();
     return;
   }
   
   try {
-    pauseAudio();
-    gameState.gamePaused = true;
+    // Сохраняем состояние игры перед показом рекламы
+    gameState.savedGameState = {
+      gameRunning: gameState.gameRunning,
+      gamePaused: gameState.gamePaused,
+      score: gameState.score,
+      currentLevel: gameState.currentLevel,
+      collectedPieces: gameState.collectedPieces,
+      lives: gameState.lives,
+      timeLeft: timeLeft
+    };
+    
+    pauseAllAudio();
     
     yandexSDK.adv.showRewardedVideo({
       callbacks: {
         onOpen: () => {
           console.log('Rewarded ad opened');
-          pauseAudio();
+          pauseAllAudio();
           gameState.gamePaused = true;
         },
         onClose: () => {
           console.log('Rewarded ad closed');
-          resumeAudio();
+          resumeAllAudio();
           gameState.gamePaused = false;
         },
         onError: (error) => {
           console.log('Rewarded ad error:', error);
-          resumeAudio();
+          resumeAllAudio();
           gameState.gamePaused = false;
-          showNotification('Ошибка загрузки рекламы');
+          showNotification('Error loading ad');
         },
         onRewarded: () => {
           console.log('Rewarded ad completed');
@@ -1355,8 +1420,8 @@ function showRewardedAd(onRewardedCallback) {
     });
   } catch (error) {
     console.log('Rewarded ad error:', error);
-    showNotification('Реклама временно недоступна');
-    resumeAudio();
+    showNotification('Ad temporarily unavailable');
+    resumeAllAudio();
     gameState.gamePaused = false;
   }
 }
@@ -1365,15 +1430,41 @@ function addExtraLife() {
   if (gameState.lives < gameState.maxLives) {
     gameState.lives++;
     updateLivesDisplay();
-    showNotification('+1 жизнь получена! 🎁');
+    showNotification('+1 life received! 🎁');
     playSound(audioElements.collectSound);
-    
-    if (elements.gameOverScreen && !elements.gameOverScreen.classList.contains('hidden')) {
-      elements.gameOverScreen.classList.add('hidden');
-      startGame();
-    }
   } else {
-    showNotification('У вас максимальное количество жизней! ❤️');
+    showNotification('You have maximum lives! ❤️');
+  }
+}
+
+function continueAfterGameOver() {
+  if (gameState.lives < gameState.maxLives) {
+    gameState.lives++;
+  }
+  
+  // Восстанавливаем состояние игры
+  if (gameState.savedGameState) {
+    gameState.gameRunning = gameState.savedGameState.gameRunning;
+    gameState.gamePaused = gameState.savedGameState.gamePaused;
+    gameState.score = gameState.savedGameState.score;
+    gameState.currentLevel = gameState.savedGameState.currentLevel;
+    gameState.collectedPieces = gameState.savedGameState.collectedPieces;
+    timeLeft = gameState.savedGameState.timeLeft;
+    
+    updateScoreDisplay();
+    updateLevelDisplay();
+    updateLivesDisplay();
+    updateMissedCounter();
+    
+    elements.gameOverScreen.classList.add('hidden');
+    
+    // Продолжаем игру
+    if (gameState.gameRunning) {
+      resumeGame();
+    }
+    
+    showNotification('+1 life received! Continue playing! 🎁');
+    playSound(audioElements.collectSound);
   }
 }
 
@@ -1408,36 +1499,86 @@ function preventSelectionAndContextMenu() {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('dragstart', (e) => e.preventDefault());
   
+  // Предотвращение масштабирования на мобильных устройствах
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+  
   document.body.style.userSelect = 'none';
   document.body.style.webkitUserSelect = 'none';
 }
 
 function setupPageVisibilityHandlers() {
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      pauseAudio();
-      if (gameState.gameRunning && !gameState.gamePaused) {
-        pauseGame();
-      }
-    } else {
-      resumeAudio();
-    }
-  });
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('blur', handleWindowBlur);
+  window.addEventListener('focus', handleWindowFocus);
 }
 
-function pauseAudio() {
-  document.querySelectorAll('audio').forEach(audio => {
+function handleVisibilityChange() {
+  if (document.hidden) {
+    pauseAllAudio();
+    if (gameState.gameRunning && !gameState.gamePaused) {
+      pauseGame();
+    }
+  } else {
+    resumeAllAudio();
+  }
+}
+
+function handleWindowBlur() {
+  pauseAllAudio();
+}
+
+function handleWindowFocus() {
+  if (!document.hidden) {
+    resumeAllAudio();
+  }
+}
+
+function pauseAllAudio() {
+  Object.values(audioElements).forEach(audio => {
     audio.pause();
   });
 }
 
-function resumeAudio() {
-  if (gameState.soundEnabled) {
-    document.querySelectorAll('audio').forEach(audio => {
-      audio.play().catch(e => console.log('Audio resume error:', e));
+function resumeAllAudio() {
+  if (gameState.soundEnabled || gameState.musicEnabled) {
+    Object.values(audioElements).forEach(audio => {
+      if ((gameState.musicEnabled && audio === audioElements.backgroundMusic) || 
+          (gameState.soundEnabled && audio !== audioElements.backgroundMusic)) {
+        audio.play().catch(e => console.log('Audio resume error:', e));
+      }
     });
   }
 }
 
 // Запуск игры
 window.addEventListener('load', initGame);
+window.addEventListener('resize', function() {
+  // Пересчитываем размеры при изменении размера окна
+  if (gameState.gameRunning) {
+    // Можно добавить логику пересчета позиций элементов
+  }
+});
+
+// Предотвращение поведения по умолчанию для жестов
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
+});
+document.addEventListener('gesturechange', function(e) {
+  e.preventDefault();
+});
+document.addEventListener('gestureend', function(e) {
+  e.preventDefault();
+});

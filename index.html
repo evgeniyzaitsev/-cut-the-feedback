@@ -13,37 +13,37 @@
   <script src="https://yandex.ru/games/sdk/v2"></script>
 </head>
 <body>
-  <!-- Аудио элементы -->
-  <audio id="background-music" preload="auto" loop>
+  <!-- Аудио элементы (скрыты) -->
+  <audio id="background-music" preload="auto" loop style="display: none;">
     <source src="sounds/background-music.mp3" type="audio/mpeg">
     <source src="sounds/background-music.wav" type="audio/wav">
   </audio>
   
-  <audio id="tick-sound" preload="auto">
+  <audio id="tick-sound" preload="auto" style="display: none;">
     <source src="sounds/tick.wav" type="audio/wav">
   </audio>
   
-  <audio id="heartbeat-sound" preload="auto">
+  <audio id="heartbeat-sound" preload="auto" style="display: none;">
     <source src="sounds/heartbeat.wav" type="audio/wav">
   </audio>
   
-  <audio id="collect-sound" preload="auto">
+  <audio id="collect-sound" preload="auto" style="display: none;">
     <source src="sounds/collect.wav" type="audio/wav">
   </audio>
   
-  <audio id="wrong-sound" preload="auto">
+  <audio id="wrong-sound" preload="auto" style="display: none;">
     <source src="sounds/wrong.wav" type="audio/wav">
   </audio>
   
-  <audio id="cut-sound" preload="auto">
+  <audio id="cut-sound" preload="auto" style="display: none;">
     <source src="sounds/cut.wav" type="audio/wav">
   </audio>
   
-  <audio id="level-complete-sound" preload="auto">
+  <audio id="level-complete-sound" preload="auto" style="display: none;">
     <source src="sounds/level-complete.wav" type="audio/wav">
   </audio>
   
-  <audio id="game-over-sound" preload="auto">
+  <audio id="game-over-sound" preload="auto" style="display: none;">
     <source src="sounds/game-over.wav" type="audio/wav">
   </audio>
 
@@ -59,14 +59,14 @@
     <div class="menu-content">
       <h1 class="game-title">✂️ Cut the Feedback</h1>
       <div class="menu-buttons">
-        <button id="menu-start-btn" class="btn-primary menu-btn">🎬 Начать игру</button>
-        <button id="menu-highscores-btn" class="btn-gold menu-btn">🏆 Рекорды</button>
-        <button id="menu-rules-btn" class="btn-secondary menu-btn">📖 Правила</button>
-        <button id="rewarded-ad-btn" class="btn-success menu-btn">🎁 +1 жизнь</button>
+        <button id="menu-start-btn" class="btn-primary menu-btn">🎬 Start Game</button>
+        <button id="menu-highscores-btn" class="btn-gold menu-btn">🏆 Leaderboard</button>
+        <button id="menu-rules-btn" class="btn-secondary menu-btn">📖 Rules</button>
+        <button id="rewarded-ad-btn" class="btn-success menu-btn">🎁 Watch ad for +1 life</button>
       </div>
       <div class="game-info">
-        <p>Редактируй видео как профессионал!</p>
-        <p>Собирай нужные правки, режь лишние</p>
+        <p>Edit videos like a pro!</p>
+        <p>Collect needed edits, cut unnecessary ones</p>
       </div>
     </div>
   </div>
@@ -74,41 +74,41 @@
   <!-- Экран правил -->
   <div id="rules-screen" class="screen hidden">
     <div class="rules-content">
-      <h2>📖 Правила игры</h2>
+      <h2>📖 Game Rules</h2>
       <div class="rules-list">
         <div class="rule-item">
           <span class="rule-emoji">🎯</span>
           <div class="rule-text">
-            <strong>Собирай нужные правки</strong>
-            <p>Тапай на зеленые правки с нужным эмодзи</p>
+            <strong>Collect needed edits</strong>
+            <p>Tap on green edits with the right emoji</p>
           </div>
         </div>
         
         <div class="rule-item">
           <span class="rule-emoji">✂️</span>
           <div class="rule-text">
-            <strong>Режь плохие правки</strong>
-            <p>Проводи пальцем по красным правкам</p>
+            <strong>Cut bad edits</strong>
+            <p>Swipe through red edits</p>
           </div>
         </div>
         
         <div class="rule-item">
           <span class="rule-emoji">⚠️</span>
           <div class="rule-text">
-            <strong>Избегай ошибок</strong>
-            <p>Не режь нужные зеленые правки - потеряешь пазл</p>
+            <strong>Avoid mistakes</strong>
+            <p>Don't cut needed green edits - you'll lose a puzzle piece</p>
           </div>
         </div>
         
         <div class="rule-item">
           <span class="rule-emoji">❤️</span>
           <div class="rule-text">
-            <strong>Следи за жизнями</strong>
-            <p>Пропустишь 7 плохих правок - потеряешь жизнь</p>
+            <strong>Watch your lives</strong>
+            <p>Miss 7 bad edits - lose a life</p>
           </div>
         </div>
       </div>
-      <button id="close-rules" class="btn-primary">Понятно!</button>
+      <button id="close-rules" class="btn-primary">Got it!</button>
     </div>
   </div>
 
@@ -123,7 +123,7 @@
         </div>
         <div class="header-center">
           <div id="current-target">
-            <span>Собрать:</span>
+            <span>Collect:</span>
             <span id="target-emoji" class="target-emoji">🎬</span>
           </div>
         </div>
@@ -145,12 +145,12 @@
     <!-- Нижняя панель управления -->
     <div class="bottom-panel">
       <div class="controls-row">
-        <button id="start-btn" class="btn-icon" title="Старт">🎬</button>
-        <button id="pause-btn" class="btn-icon" title="Пауза">⏸️</button>
-        <button id="end-btn" class="btn-icon" title="Меню">⏹️</button>
-        <div id="missed-counter" class="missed-icon" title="Пропущено">⚠️ <span>0/7</span></div>
-        <button id="highscores-btn" class="btn-icon" title="Рекорды">🏆</button>
-        <button id="game-rewarded-ad-btn" class="btn-icon" title="+1 жизнь">🎁</button>
+        <button id="start-btn" class="btn-icon" title="Start">🎬</button>
+        <button id="pause-btn" class="btn-icon" title="Pause">⏸️</button>
+        <button id="end-btn" class="btn-icon" title="Menu">⏹️</button>
+        <div id="missed-counter" class="missed-icon" title="Missed">⚠️ <span>0/7</span></div>
+        <button id="highscores-btn" class="btn-icon" title="Leaderboard">🏆</button>
+        <button id="game-rewarded-ad-btn" class="btn-icon" title="Watch ad for +1 life">🎁</button>
       </div>
     </div>
   </div>
@@ -158,15 +158,15 @@
   <!-- Экран проигрыша -->
   <div id="game-over" class="screen hidden">
     <div class="game-over-content">
-      <h2>💀 ПОТРАЧЕНО</h2>
+      <h2>💀 GAME OVER</h2>
       <div class="final-stats">
-        <p>🎯 Уровень: <span id="final-level">1</span></p>
-        <p>🏆 Очки: <span id="final-score">0</span></p>
+        <p>🎯 Level: <span id="final-level">1</span></p>
+        <p>🏆 Score: <span id="final-score">0</span></p>
       </div>
       <div class="game-over-buttons">
-        <button id="restart-btn" class="btn-primary">🔄 Начать заново</button>
-        <button id="menu-from-gameover" class="btn-secondary">🏠 В меню</button>
-        <button id="gameover-rewarded-ad-btn" class="btn-success">🎁 +1 жизнь</button>
+        <button id="restart-btn" class="btn-primary">🔄 Restart</button>
+        <button id="menu-from-gameover" class="btn-secondary">🏠 Main Menu</button>
+        <button id="gameover-rewarded-ad-btn" class="btn-success">🎁 Watch ad for +1 life</button>
       </div>
     </div>
   </div>
@@ -174,27 +174,29 @@
   <!-- Экран паузы -->
   <div id="pause-screen" class="screen hidden">
     <div class="pause-content">
-      <h2>⏸️ ПАУЗА</h2>
-      <button id="resume-btn" class="btn-success">▶️ Продолжить</button>
-      <button id="quit-btn" class="btn-danger">🏠 Выйти в меню</button>
+      <h2>⏸️ PAUSED</h2>
+      <div class="pause-buttons">
+        <button id="resume-btn" class="btn-success large-btn">▶️ Continue</button>
+        <button id="quit-btn" class="btn-danger large-btn">🏠 Quit to Menu</button>
+      </div>
     </div>
   </div>
 
   <!-- Экран перехода между уровнями -->
   <div id="level-complete" class="screen hidden">
     <div class="level-complete-content">
-      <h2>🎉 Уровень <span id="completed-level">1</span> завершен!</h2>
-      <p id="level-message">Отличный старт! Ты освоил базовые инструменты монтажа.</p>
-      <button id="next-level-btn" class="btn-success">🚀 Следующий уровень</button>
+      <h2>🎉 Level <span id="completed-level">1</span> Complete!</h2>
+      <p id="level-message">Great start! You've mastered basic editing tools.</p>
+      <button id="next-level-btn" class="btn-success">🚀 Next Level</button>
     </div>
   </div>
 
   <!-- Таблица рекордов -->
   <div id="highscores-screen" class="screen hidden">
     <div class="highscores-content">
-      <h2>🏆 Таблица рекордов</h2>
+      <h2>🏆 Leaderboard</h2>
       <div id="highscores-list"></div>
-      <button id="close-highscores" class="btn-secondary">✖️ Закрыть</button>
+      <button id="close-highscores" class="btn-secondary">✖️ Close</button>
     </div>
   </div>
 
