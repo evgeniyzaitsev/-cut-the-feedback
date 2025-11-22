@@ -319,6 +319,11 @@ function initGame() {
   
   preventSelectionAndContextMenu();
   setupPageVisibilityHandlers();
+  
+  // Game Ready API
+  if (isYandexPlatform && yandexSDK) {
+    yandexSDK.gameReady();
+  }
 }
 
 // Применение языка
@@ -1543,9 +1548,6 @@ function initYandexSDK() {
       yandexSDK = ysdk;
       isYandexPlatform = true;
       console.log('Yandex SDK initialized');
-      
-      // Game Ready API
-      ysdk.gameReady();
       
       // Автоопределение языка из SDK
       try {
