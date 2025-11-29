@@ -296,9 +296,21 @@ let timeLeft;
 // Yandex SDK
 let yandexSDK = null;
 let isYandexPlatform = false;
+let isShowingAd = false;
 
 // Инициализация игры
 function initGame() {
+  // Загружаем настройки звука
+  const savedSound = localStorage.getItem('soundEnabled');
+  const savedMusic = localStorage.getItem('musicEnabled');
+  
+  if (savedSound !== null) {
+    gameState.soundEnabled = savedSound === 'true';
+  }
+  if (savedMusic !== null) {
+    gameState.musicEnabled = savedMusic === 'true';
+  }
+  
   setupEventListeners();
   initSounds();
   createSoundControls();
@@ -319,6 +331,9 @@ function initGame() {
   
   preventSelectionAndContextMenu();
   setupPageVisibilityHandlers();
+  
+  // Обновляем иконки звука
+  updateSoundIcons();
   
   // Game Ready API
   if (isYandexPlatform && yandexSDK) {
@@ -363,13 +378,48 @@ function setupInfiniteMusic() {
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.3;
     
+    // Обеспечиваем бесконечное воспроизведение
     audioElements.backgroundMusic.addEventListener('ended', function() {
       this.currentTime = 0;
-      this.play().catch(e => console.log('Music restart error:', e));
+      if (gameState.musicEnabled && !shouldPauseMusic()) {
+        this.play().catch(e => console.log('Music restart error:', e));
+      }
     });
     
-    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    // Запускаем музыку если можно
+    if (!shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    }
   }
+}
+
+// Проверка, должна ли музыка быть на паузе
+function shouldPauseMusic() {
+  // Музыка должна останавливаться только в этих случаях:
+  // 1. Когда страница не видима (свернута или другая вкладка)
+  // 2. Когда игра на паузе (но мы можем оставить музыку в меню)
+  // 3. При показе рекламы
+  return document.hidden || 
+         (gameState.gamePaused && gameState.gameRunning) ||
+         isShowingAd;
+}
+
+// Новая функция - пауза всех звуков кроме музыки
+function pauseAllAudioExceptMusic() {
+  Object.values(audioElements).forEach(audio => {
+    if (audio !== audioElements.backgroundMusic) {
+      audio.pause();
+    }
+  });
+}
+
+// Функция обновления иконок звука
+function updateSoundIcons() {
+  const soundIcon = document.getElementById('sound-toggle');
+  const musicIcon = document.getElementById('music-toggle');
+  
+  soundIcon.textContent = gameState.soundEnabled ? '🔊' : '🔇';
+  musicIcon.textContent = gameState.musicEnabled ? '🎵' : '🎵❌';
 }
 
 // Настройка обработчиков событий
@@ -497,6 +547,9 @@ function toggleSound() {
     stopSound(audioElements.heartbeatSound);
     gameState.heartbeatPlaying = false;
   }
+  
+  // Сохраняем настройку
+  localStorage.setItem('soundEnabled', gameState.soundEnabled);
 }
 
 function toggleMusic() {
@@ -506,12 +559,15 @@ function toggleMusic() {
   
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.3;
-    if (gameState.gameRunning || elements.mainMenu.classList.contains('hidden')) {
+    if (!shouldPauseMusic()) {
       audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
     }
   } else {
     audioElements.backgroundMusic.pause();
   }
+  
+  // Сохраняем настройку
+  localStorage.setItem('musicEnabled', gameState.musicEnabled);
 }
 
 // Инициализация пазла
@@ -736,9 +792,12 @@ function startGame() {
   
   startTimer();
   
+  // Музыка продолжает играть, только меняем громкость
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.2;
-    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    if (!shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    }
   }
 }
 
@@ -764,6 +823,11 @@ function resumeGame() {
   if (timeLeft <= 15 && gameState.gameRunning) {
     playSound(audioElements.heartbeatSound);
     gameState.heartbeatPlaying = true;
+  }
+  
+  // Возобновляем музыку если нужно
+  if (gameState.musicEnabled && !shouldPauseMusic()) {
+    audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
   }
   
   document.querySelectorAll('.feedback').forEach(fb => {
@@ -876,9 +940,12 @@ function returnToMenu() {
   hideAllScreens();
   elements.mainMenu.classList.remove('hidden');
   
+  // В меню музыка играет с нормальной громкостью
   if (gameState.musicEnabled) {
     audioElements.backgroundMusic.volume = 0.3;
-    audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    if (!shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music play error:', e));
+    }
   }
 }
 
@@ -1580,6 +1647,8 @@ function showRewardedAd(onRewardedCallback) {
   }
   
   try {
+    isShowingAd = true;
+    
     // Сохраняем состояние игры перед показом рекламы
     gameState.savedGameState = {
       gameRunning: gameState.gameRunning,
@@ -1591,36 +1660,55 @@ function showRewardedAd(onRewardedCallback) {
       timeLeft: timeLeft
     };
     
-    pauseAllAudio();
+    // При показе рекламы ставим музыку на паузу
+    if (gameState.musicEnabled) {
+      audioElements.backgroundMusic.pause();
+    }
+    pauseAllAudioExceptMusic();
     
     yandexSDK.adv.showRewardedVideo({
       callbacks: {
         onOpen: () => {
           console.log('Rewarded ad opened');
-          pauseAllAudio();
+          isShowingAd = true;
+          if (gameState.musicEnabled) {
+            audioElements.backgroundMusic.pause();
+          }
+          pauseAllAudioExceptMusic();
           gameState.gamePaused = true;
         },
         onClose: () => {
           console.log('Rewarded ad closed');
-          resumeAllAudio();
+          isShowingAd = false;
+          // После закрытия рекламы возобновляем музыку если нужно
+          if (gameState.musicEnabled && !shouldPauseMusic()) {
+            audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
+          }
           gameState.gamePaused = false;
         },
         onError: (error) => {
           console.log('Rewarded ad error:', error);
-          resumeAllAudio();
+          isShowingAd = false;
+          if (gameState.musicEnabled && !shouldPauseMusic()) {
+            audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
+          }
           gameState.gamePaused = false;
           showNotification(getTranslation('ad_error'));
         },
         onRewarded: () => {
           console.log('Rewarded ad completed');
+          isShowingAd = false;
           onRewardedCallback();
         }
       }
     });
   } catch (error) {
     console.log('Rewarded ad error:', error);
+    isShowingAd = false;
     showNotification(getTranslation('ad_unavailable'));
-    resumeAllAudio();
+    if (gameState.musicEnabled && !shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
+    }
     gameState.gamePaused = false;
   }
 }
@@ -1731,17 +1819,25 @@ function handleVisibilityChange() {
       pauseGame();
     }
   } else {
-    resumeAllAudio();
+    // При возвращении на страницу возобновляем только музыку
+    // если она включена и не должна быть на паузе
+    if (gameState.musicEnabled && !shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
+    }
   }
 }
 
 function handleWindowBlur() {
-  pauseAllAudio();
+  // При потере фокуса паузим только звуковые эффекты, музыку оставляем
+  pauseAllAudioExceptMusic();
 }
 
 function handleWindowFocus() {
   if (!document.hidden) {
-    resumeAllAudio();
+    // При возвращении фокуса возобновляем только музыку если нужно
+    if (gameState.musicEnabled && !shouldPauseMusic()) {
+      audioElements.backgroundMusic.play().catch(e => console.log('Music resume error:', e));
+    }
   }
 }
 

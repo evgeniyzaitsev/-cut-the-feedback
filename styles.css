@@ -629,6 +629,217 @@ body {
   }
 }
 
+/* Эффекты для порезанных правок и следов */
+.trail-sphere {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99;
+  animation: trailFade 0.6s ease-out forwards;
+  background: radial-gradient(circle at 30% 30%, 
+    #ff4444 0%, 
+    #ffaa00 50%, 
+    #ffff00 100%);
+  box-shadow: 
+    0 0 4px rgba(255, 100, 100, 0.8),
+    inset 1px 1px 2px rgba(255, 255, 200, 0.4);
+}
+
+@keyframes trailFade {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.smoke-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(200, 200, 200, 0.8);
+  pointer-events: none;
+  z-index: 50;
+  animation: smokeFloat 1.2s ease-out forwards;
+}
+
+@keyframes smokeFloat {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(2);
+    opacity: 0;
+  }
+}
+
+.explosion-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffff00 0%, #ff8800 100%);
+  pointer-events: none;
+  z-index: 50;
+  animation: explode 0.8s ease-out forwards;
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.collect-effect {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00ff00 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 50;
+  animation: collectExpand 0.5s ease-out forwards;
+}
+
+@keyframes collectExpand {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.combo-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3em;
+  font-weight: bold;
+  color: #ffaa00;
+  text-shadow: 0 0 20px rgba(255, 170, 0, 0.8);
+  z-index: 1000;
+  animation: comboPop 1s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes comboPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+.warning-message {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: warningSlide 2s ease-in-out forwards;
+}
+
+@keyframes warningSlide {
+  0%, 100% {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  10%, 90% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.notification {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 255, 0, 0.8);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: notificationSlide 3s ease-in-out forwards;
+}
+
+@keyframes notificationSlide {
+  0%, 100% {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  10%, 90% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Анимация тряски при ошибке */
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake-error {
+  animation: shakeError 0.6s ease-in-out;
+}
+
+/* Стили для эффекта сбора */
+.collecting {
+  animation: collectAnimation 0.8s ease-out forwards !important;
+}
+
+@keyframes collectAnimation {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0) translate(var(--collect-x), var(--collect-y));
+    opacity: 0;
+  }
+}
+
+/* Оптимизация для производительности */
+.feedback, .puzzle-piece, .stat-card, .swipe-line, .trail-sphere {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
 /* Экраны состояний игры */
 .game-over-content,
 .pause-content,
