@@ -67,7 +67,15 @@ const translations = {
     // Системные сообщения
     wrong_edits_warning: "Вы режете не те правки! Потерян пазл!",
     congratulations: "Поздравляем! Введите ваше имя для таблицы рекордов:",
-    default_player_name: "Игрок"
+    default_player_name: "Игрок",
+    
+    // Экран победы
+    you_win: "🏆 ВЫ ПОБЕДИЛИ!",
+    win_message: "Вы прошли все 5 уровней!",
+    win_score_label: "Итоговый счёт",
+    enter_name_placeholder: "Введите ваше имя",
+    save_and_menu: "💾 Сохранить и в меню",
+    skip_to_menu: "Пропустить"
   },
   en: {
     // Main menu
@@ -133,7 +141,15 @@ const translations = {
     // System messages
     wrong_edits_warning: "You're cutting wrong edits! Lost a puzzle piece!",
     congratulations: "Congratulations! Enter your name for the leaderboard:",
-    default_player_name: "Player"
+    default_player_name: "Player",
+    
+    // Win screen
+    you_win: "🏆 YOU WIN!",
+    win_message: "You completed all 5 levels!",
+    win_score_label: "Final score",
+    enter_name_placeholder: "Enter your name",
+    save_and_menu: "💾 Save & Menu",
+    skip_to_menu: "Skip"
   }
 };
 
@@ -270,7 +286,11 @@ const elements = {
   highscoresList: document.getElementById("highscores-list"),
   
   // Игровая зона
-  gameArea: document.getElementById("game-area")
+  gameArea: document.getElementById("game-area"),
+  
+  // Экран победы
+  winScreen: document.getElementById("win-screen"),
+  winNameInput: document.getElementById("win-name-input")
 };
 
 // Аудио элементы
@@ -355,6 +375,14 @@ function applyLanguage() {
         text = text.replace('{level}', elements.completedLevelDisplay.textContent);
       }
       element.textContent = text;
+    }
+  });
+  
+  // Применяем placeholder для input-полей с data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+    const key = element.getAttribute('data-i18n-placeholder');
+    if (translations[gameState.language][key]) {
+      element.placeholder = translations[gameState.language][key];
     }
   });
   
@@ -447,6 +475,10 @@ function setupEventListeners() {
   elements.rewardedAdBtn.addEventListener('click', () => showRewardedAd(addExtraLife));
   elements.gameRewardedAdBtn.addEventListener('click', () => showRewardedAd(addExtraLife));
   elements.gameoverRewardedAdBtn.addEventListener('click', () => showRewardedAd(continueAfterGameOver));
+  
+  // Экран победы
+  document.getElementById('win-save-btn').addEventListener('click', () => closeWinScreen(true));
+  document.getElementById('win-skip-btn').addEventListener('click', () => closeWinScreen(false));
   
   // Свайп-контролы
   setupSwipeControls();
@@ -917,7 +949,6 @@ function endGame(isWin) {
   }
   
   if (isWin || gameState.score > 0) {
-    saveHighscore(gameState.score, gameState.currentLevel);
     saveToLeaderboard(gameState.score);
   }
   
@@ -927,11 +958,7 @@ function endGame(isWin) {
     elements.finalLevelDisplay.textContent = gameState.currentLevel;
     elements.finalScoreDisplay.textContent = gameState.score;
   } else {
-    const winMessage = gameState.language === 'ru' 
-      ? `🎉 Поздравляем! Вы прошли все уровни с результатом ${gameState.score} очков!`
-      : `🎉 Congratulations! You completed all levels with ${gameState.score} points!`;
-    alert(winMessage);
-    returnToMenu();
+    showWinScreen(gameState.score);
   }
 }
 
@@ -1100,7 +1127,7 @@ function spawnFeedback() {
   setTimeout(() => {
     if (fb.parentNode && !fb.dataset.sliced && !fb.dataset.collected) {
       if (item.type === "good") {
-        gameState.score -= 2;
+        gameState.score = Math.max(0, gameState.score - 2);
         updateScoreDisplay();
         resetCombo();
       } else if (item.type === "bad") {
@@ -1162,7 +1189,7 @@ function spawnNeededFeedback() {
       
       setTimeout(() => {
         if (fb.parentNode && !fb.dataset.sliced && !fb.dataset.collected) {
-          gameState.score -= 2;
+          gameState.score = Math.max(0, gameState.score - 2);
           updateScoreDisplay();
           resetCombo();
           fb.parentNode.removeChild(fb);
@@ -1257,7 +1284,7 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
     const targetEmoji = gameState.currentLevelEmojis[gameState.currentTargetIndex];
     
     if (feedbackEmoji === targetEmoji) {
-      gameState.score -= 5;
+      gameState.score = Math.max(0, gameState.score - 5);
       resetCombo();
       
       gameState.wrongGreenCuts++;
@@ -1267,7 +1294,7 @@ function cutFeedback(fb, cutX, cutY, cutAngle) {
         gameState.wrongGreenCuts = 0;
       }
     } else {
-      gameState.score -= 2;
+      gameState.score = Math.max(0, gameState.score - 2);
       resetCombo();
       
       gameState.wrongGreenCuts++;
@@ -1534,6 +1561,8 @@ function hideAllScreens() {
   document.querySelectorAll('.screen').forEach(screen => {
     screen.classList.add('hidden');
   });
+  const winScreen = document.getElementById('win-screen');
+  if (winScreen) winScreen.classList.add('hidden');
 }
 
 function showRules() {
@@ -1561,25 +1590,48 @@ function closeHighscores() {
   }
 }
 
+// Экран победы (вместо alert)
+function showWinScreen(score) {
+  const screen = document.getElementById('win-screen');
+  document.getElementById('win-final-score').textContent = score;
+  applyLanguage();
+  screen.classList.remove('hidden');
+}
+
+function closeWinScreen(saveName) {
+  const screen = document.getElementById('win-screen');
+  const nameInput = document.getElementById('win-name-input');
+  const name = (nameInput ? nameInput.value.trim() : '') || getTranslation('default_player_name');
+  
+  if (saveName && name) {
+    saveHighscoreEntry(name, gameState.score, gameState.currentLevel);
+  }
+  
+  screen.classList.add('hidden');
+  returnToMenu();
+}
+
 // Рекорды
+function saveHighscoreEntry(name, score, level) {
+  const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
+  highscores.push({
+    name: name.substring(0, 15),
+    score: score,
+    level: level,
+    date: new Date().toLocaleDateString()
+  });
+  highscores.sort((a, b) => b.score - a.score);
+  const topHighscores = highscores.slice(0, 10);
+  localStorage.setItem('cutFeedbackHighscores', JSON.stringify(topHighscores));
+  updateHighscoresDisplay();
+}
+
 function saveHighscore(score, level) {
   const promptText = getTranslation('congratulations');
   const defaultName = getTranslation('default_player_name');
   const name = prompt(promptText, defaultName);
-  
   if (name) {
-    const highscores = JSON.parse(localStorage.getItem('cutFeedbackHighscores')) || [];
-    highscores.push({
-      name: name.substring(0, 15),
-      score: score,
-      level: level,
-      date: new Date().toLocaleDateString()
-    });
-    
-    highscores.sort((a, b) => b.score - a.score);
-    const topHighscores = highscores.slice(0, 10);
-    localStorage.setItem('cutFeedbackHighscores', JSON.stringify(topHighscores));
-    updateHighscoresDisplay();
+    saveHighscoreEntry(name.substring(0, 15), score, level);
   }
 }
 

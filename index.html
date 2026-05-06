@@ -198,6 +198,26 @@
     </div>
   </div>
 
+  <!-- Экран победы -->
+  <div id="win-screen" class="screen hidden">
+    <div class="win-content">
+      <div class="win-trophy">🏆</div>
+      <h2 data-i18n="you_win">🏆 ВЫ ПОБЕДИЛИ!</h2>
+      <p class="win-subtitle" data-i18n="win_message">Вы прошли все 5 уровней!</p>
+      <div class="win-score-block">
+        <div class="win-score-label" data-i18n="win_score_label">Итоговый счёт</div>
+        <div class="win-score-value" id="win-final-score">0</div>
+      </div>
+      <div class="win-name-block">
+        <input type="text" id="win-name-input" class="win-name-input" maxlength="15" data-i18n-placeholder="enter_name_placeholder" placeholder="Введите ваше имя" />
+      </div>
+      <div class="win-buttons">
+        <button id="win-save-btn" class="btn-gold menu-btn" data-i18n="save_and_menu">💾 Сохранить и в меню</button>
+        <button id="win-skip-btn" class="btn-secondary menu-btn" data-i18n="skip_to_menu">Пропустить</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Управление звуком -->
   <div class="sound-controls">
     <div id="sound-toggle" class="sound-btn">🔊</div>

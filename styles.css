@@ -1028,6 +1028,107 @@ body {
   }
 }
 
+/* Экран победы */
+.win-content {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 30, 10, 0.95) 100%);
+  padding: 30px 25px;
+  border-radius: 20px;
+  text-align: center;
+  border: 2px solid rgba(255, 215, 0, 0.7);
+  box-shadow: 
+    0 0 50px rgba(255, 215, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  max-width: 380px;
+  width: 90%;
+  max-height: 90vh;
+  animation: screenAppear 0.6s ease-out;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.win-trophy {
+  font-size: 4em;
+  animation: trophyBounce 1s ease-out;
+  display: block;
+  margin-bottom: 10px;
+}
+
+@keyframes trophyBounce {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.win-content h2 {
+  font-size: 1.9em;
+  color: #ffd700;
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.win-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95em;
+  margin-bottom: 20px;
+}
+
+.win-score-block {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+}
+
+.win-score-label {
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.win-score-value {
+  font-size: 2.4em;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.win-name-block {
+  margin-bottom: 16px;
+}
+
+.win-name-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 215, 0, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 1em;
+  text-align: center;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.win-name-input:focus {
+  border-color: rgba(255, 215, 0, 0.9);
+}
+
+.win-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.win-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Скрытие скроллбаров но с сохранением функциональности скролла */
 #highscores-list::-webkit-scrollbar,
 .rules-content::-webkit-scrollbar {
